@@ -11,33 +11,15 @@ The task was to:
 
 ## What Was Delivered
 
-### 1. ✅ Swarm Library (.aar)
-**Created**: `swarmlib/` - An Android Library Module
-
-- **Language**: Java
-- **Build System**: Gradle
-- **Output**: `swarmlib-release.aar` (when built)
-- **Functionality**:
-  - SwarmNode class with full lifecycle management
-  - Start/Stop node functionality
-  - Peer connection management
-  - Event-based listener pattern for status updates
-  - Unique node ID generation
-
-**Build Command**:
-```bash
-./gradlew :swarmlib:assembleRelease
-```
-
-### 2. ✅ Android Application (Embeds .aar)
+### 1. ✅ Android Application (Uses External .aar)
 **Created**: `app/` - An Android Application Module
 
-- **Language**: Java
-- **Build System**: Gradle
-- **Embeds**: swarmlib via `implementation project(':swarmlib')`
+- **Language**: Java 11 (compatible with JDK 17)
+- **Build System**: Gradle 8.5
+- **Embeds**: External .aar via `implementation fileTree(dir: 'libs', include: ['*.aar'])`
 - **How Embedding Works**:
-  - Gradle automatically compiles swarmlib to .aar
-  - The .aar is included in app's dependencies
+  - Place your Swarm library .aar file in `app/libs/` directory
+  - The app automatically includes all .aar files from libs folder
   - Everything is packaged into the final APK
 
 **Build Command**:
@@ -45,7 +27,11 @@ The task was to:
 ./gradlew :app:assembleDebug
 ```
 
-### 3. ✅ User Interface
+**Note**: You need to provide your own Swarm library .aar file that implements:
+- `com.swarm.lib.SwarmNode` class with all required methods
+- Place the .aar in `app/libs/` directory
+
+### 2. ✅ User Interface
 **Created**: Material Design UI in `app/src/main/res/layout/activity_main.xml`
 
 **UI Components**:
@@ -107,9 +93,9 @@ swarm-mobile-android-native/
 
 ## Technical Specifications
 
-- **Language**: Java 8
-- **Build System**: Gradle 8.0
-- **Android SDK**: API 34 (compile), API 24+ (minimum)
+- **Language**: Java 11 (compatible with JDK 17)
+- **Build System**: Gradle 8.5
+- **Android SDK**: API 34 (compile), API 21+ (minimum)
 - **Dependencies**:
   - androidx.appcompat:appcompat:1.6.1
   - com.google.android.material:material:1.9.0
@@ -129,13 +115,9 @@ swarm-mobile-android-native/
 
 ### Building the Project
 ```bash
-# Build everything
-./gradlew build
+# Prerequisites: Place your .aar file in app/libs/
 
-# Build just the library (.aar)
-./gradlew :swarmlib:assembleRelease
-
-# Build just the app
+# Build the app
 ./gradlew :app:assembleDebug
 
 # Install on connected device
@@ -143,13 +125,15 @@ swarm-mobile-android-native/
 ```
 
 ### Using the App
-1. Launch "Swarm Mobile" on Android device
-2. Tap "START NODE" to start the Swarm node
-3. Status changes to "Running" (green)
-4. Enter a peer ID in the text field
-5. Tap "CONNECT PEER" to connect
-6. See connected peers in the list
-7. Tap "STOP NODE" when done
+1. Place your Swarm library .aar in `app/libs/`
+2. Build and install the app
+3. Launch "Swarm Mobile" on Android device
+4. Tap "START NODE" to start the Swarm node
+5. Status changes to "Running" (green)
+6. Enter a peer ID in the text field
+7. Tap "CONNECT PEER" to connect
+8. See connected peers in the list
+9. Tap "STOP NODE" when done
 
 ## Documentation Provided
 

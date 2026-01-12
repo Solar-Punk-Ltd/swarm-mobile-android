@@ -2,44 +2,43 @@
 Native Android Swarm Node
 
 ## Overview
-This is a native Android application for running a Swarm node on Android devices. The project consists of:
-- **swarmlib**: An Android library module that provides Swarm node functionality (built as .aar)
-- **app**: An Android application that embeds the swarmlib .aar and provides a user interface
+This is a native Android application for running a Swarm node on Android devices. The app uses an external Swarm library (.aar file) that you need to provide.
 
 ## Project Structure
 ```
 swarm-mobile-android-native/
 ├── app/                          # Android application module
 │   ├── build.gradle             # App build configuration
+│   ├── libs/                    # Place your .aar file here
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       ├── java/com/swarm/mobile/
 │       │   └── MainActivity.java # Main UI implementation
 │       └── res/                 # Resources (layouts, strings, etc.)
-├── swarmlib/                    # Swarm library module (builds to .aar)
-│   ├── build.gradle            # Library build configuration
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       └── java/com/swarm/lib/
-│           └── SwarmNode.java  # Core Swarm functionality
 ├── build.gradle                # Root build configuration
 ├── settings.gradle             # Project settings
 └── gradle/                     # Gradle wrapper
-
 ```
 
 ## Requirements
-- Android SDK (API level 24 or higher)
-- Java 8 or higher
-- Gradle 8.0 or higher
+- Android SDK (API level 21 or higher)
+- Java 11 or higher (compatible with JDK 17)
+- Gradle 8.5 or higher
+- Swarm library .aar file (see below)
+
+## Setting Up the .aar Library
+
+1. Place your Swarm library `.aar` file in the `app/libs/` directory
+2. The .aar file must provide the following class:
+   - `com.swarm.lib.SwarmNode` with:
+     - Constructor: `SwarmNode()`
+     - Methods: `start()`, `stop()`, `isRunning()`, `getNodeId()`, `connectPeer(String)`, `disconnectPeer(String)`
+     - Interface: `SwarmNodeListener` with callbacks: `onStatusChanged(String)`, `onPeerConnected(String)`, `onPeerDisconnected(String)`
+     - Methods: `addListener(SwarmNodeListener)`, `removeListener(SwarmNodeListener)`
+
+The app will automatically include all `.aar` files from the `app/libs/` directory.
 
 ## Building the Project
-
-### Build the Swarm Library (.aar)
-```bash
-./gradlew :swarmlib:assembleRelease
-```
-The .aar file will be generated at: `swarmlib/build/outputs/aar/swarmlib-release.aar`
 
 ### Build the Android App
 ```bash
@@ -47,18 +46,17 @@ The .aar file will be generated at: `swarmlib/build/outputs/aar/swarmlib-release
 ```
 The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Build Everything
+### Build Release Version
 ```bash
-./gradlew build
+./gradlew :app:assembleRelease
+```
+
+### Install on Connected Device
+```bash
+./gradlew :app:installDebug
 ```
 
 ## Features
-
-### Swarm Library (swarmlib)
-- `SwarmNode` class with lifecycle management
-- Start/stop node functionality
-- Peer connection management
-- Event listener interface for status updates
 
 ### Android App
 - Material Design UI with card-based layout
@@ -75,18 +73,28 @@ The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 4. **Peers List**: Shows all currently connected peers
 
 ## Usage
-1. Install the APK on an Android device (API 24+)
-2. Launch the "Swarm Mobile" app
-3. Tap "Start Node" to start the Swarm node
-4. Enter a peer ID and tap "Connect Peer" to establish connections
-5. View connected peers in the peers list
-6. Tap "Stop Node" when done
+1. Place your Swarm library .aar file in `app/libs/`
+2. Build the app using Gradle
+3. Install the APK on an Android device (API 21+)
+4. Launch the "Swarm Mobile" app
+5. Tap "Start Node" to start the Swarm node
+6. Enter a peer ID and tap "Connect Peer" to establish connections
+7. View connected peers in the peers list
+8. Tap "Stop Node" when done
 
 ## Development
-The app is written in Java and uses:
+The app is written in Java 11 and uses:
 - AndroidX libraries
 - Material Components for Android
 - Gradle build system
+- Minimum SDK: API 21 (Android 5.0)
+- Target SDK: API 34 (Android 14)
+
+## Gradle Version
+This project uses Gradle 8.5, which is compatible with:
+- Android Gradle Plugin 8.1.0+
+- Java 11-19
+- Android Studio Hedgehog (2023.1.1) and later
 
 ## License
 This project is part of the Swarm ecosystem.

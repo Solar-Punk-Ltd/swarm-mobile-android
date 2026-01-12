@@ -2,49 +2,34 @@
 
 ## What Was Created
 
-This project implements a complete Android application with an embedded library (.aar) as requested:
+This project implements an Android application that uses an external Swarm library (.aar file):
 
-### 1. **Swarm Library Module (swarmlib)** - Generates .aar
-- **Location**: `swarmlib/`
-- **Type**: Android Library Module
-- **Output**: `swarmlib-release.aar` (when built)
-- **Language**: Java
-- **Build System**: Gradle
-
-**Key Components**:
-- `SwarmNode.java`: Core Swarm node functionality
-  - Node lifecycle management (start/stop)
-  - Peer connection/disconnection
-  - Event listener interface
-  - Node ID generation
-
-### 2. **Android App Module (app)** - Embeds the .aar
+### 1. **Android App Module (app)** - Uses External .aar
 - **Location**: `app/`
 - **Type**: Android Application
 - **Output**: `app-debug.apk` / `app-release.apk`
-- **Language**: Java
-- **Build System**: Gradle
+- **Language**: Java 11
+- **Build System**: Gradle 8.5
 
 **How .aar is Embedded**:
-The app module depends on swarmlib via:
+The app module loads .aar files from the `app/libs/` directory:
 ```gradle
 dependencies {
-    implementation project(':swarmlib')
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
 }
 ```
 
-Gradle automatically:
-1. Compiles swarmlib into a .aar
-2. Includes it in the app's dependencies
-3. Packages everything into the APK
+You need to provide your own Swarm library .aar file that implements:
+- `com.swarm.lib.SwarmNode` class with all required methods
+- The .aar should be placed in `app/libs/` directory
 
 **Key Components**:
-- `MainActivity.java`: Main UI implementation using swarmlib
+- `MainActivity.java`: Main UI implementation that uses the Swarm library
 - Material Design UI with 4 card sections
 - Real-time status updates
 - Peer management interface
 
-### 3. **User Interface**
+### 2. **User Interface**
 
 The UI features a modern Material Design layout with:
 
@@ -98,12 +83,26 @@ swarm-mobile-android-native/
 │   │       │   ├── colors.xml
 │   │       │   └── themes.xml
 │   │       └── drawable/
-├── swarmlib/                    # Library (builds .aar)
-│   ├── build.gradle            # Library configuration
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       └── java/com/swarm/lib/
-│           └── SwarmNode.java
+## Project Structure
+
+```
+swarm-mobile-android-native/
+├── app/                          # Android app
+│   ├── build.gradle             # App configuration
+│   ├── libs/                    # Place .aar files here
+│   │   └── README.md           # Instructions for .aar
+│   ├── src/main/
+│   │   ├── AndroidManifest.xml
+│   │   ├── java/com/swarm/mobile/
+│   │   │   └── MainActivity.java
+│   │   └── res/                 # UI resources
+│   │       ├── layout/
+│   │       │   └── activity_main.xml
+│   │       ├── values/
+│   │       │   ├── strings.xml
+│   │       │   ├── colors.xml
+│   │       │   └── themes.xml
+│   │       └── drawable/
 ├── build.gradle                # Root Gradle config
 ├── settings.gradle             # Module settings
 └── gradle/                     # Gradle wrapper
@@ -111,11 +110,9 @@ swarm-mobile-android-native/
 
 ## How to Build
 
-### Build the .aar library:
-```bash
-./gradlew :swarmlib:assembleRelease
-```
-Output: `swarmlib/build/outputs/aar/swarmlib-release.aar`
+### Prerequisites:
+1. Place your Swarm library .aar file in `app/libs/`
+2. The .aar must provide `com.swarm.lib.SwarmNode` class
 
 ### Build the Android app:
 ```bash
@@ -123,28 +120,26 @@ Output: `swarmlib/build/outputs/aar/swarmlib-release.aar`
 ```
 Output: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Build everything:
+### Build release version:
 ```bash
-./gradlew build
+./gradlew :app:assembleRelease
 ```
 
 ## Requirements Met
 
-✅ Created an Android app using Java
-✅ Uses Gradle for build system
-✅ Created a library module that builds to .aar
-✅ App embeds and uses the .aar library
+✅ Created an Android app using Java 11
+✅ Uses Gradle 8.5 for build system
+✅ App uses external .aar library from libs directory
 ✅ Implemented a comprehensive user interface
 ✅ Material Design components
-✅ Fully functional Swarm node implementation
 ✅ Real-time UI updates
 ✅ Peer management functionality
 
 ## Technologies Used
 
-- **Language**: Java 8
-- **Build System**: Gradle 8.0
-- **Android SDK**: API 34 (compileSdk), API 24+ (minSdk)
+- **Language**: Java 11 (compatible with JDK 17)
+- **Build System**: Gradle 8.5
+- **Android SDK**: API 34 (compileSdk), API 21+ (minSdk)
 - **UI Framework**: Material Components for Android
 - **Libraries**:
   - androidx.appcompat:appcompat:1.6.1
