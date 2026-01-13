@@ -2,6 +2,7 @@ package com.swarm.mobile;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -61,7 +62,7 @@ public class PeersActivity extends AppCompatActivity implements SwarmNode.SwarmN
         swarmNode.start();
 
         // Setup auto-refresh for peers list (every 5 seconds)
-        refreshHandler = new Handler();
+        refreshHandler = new Handler(Looper.getMainLooper());
         refreshRunnable = new Runnable() {
             @Override
             public void run() {
@@ -84,9 +85,9 @@ public class PeersActivity extends AppCompatActivity implements SwarmNode.SwarmN
             public void run() {
                 statusText.setText(status);
                 if (status.equals("Running")) {
-                    statusText.setTextColor(getResources().getColor(R.color.status_running, null));
+                    statusText.setTextColor(getResources().getColor(R.color.status_running, getTheme()));
                 } else {
-                    statusText.setTextColor(getResources().getColor(R.color.status_stopped, null));
+                    statusText.setTextColor(getResources().getColor(R.color.status_stopped, getTheme()));
                 }
             }
         });
