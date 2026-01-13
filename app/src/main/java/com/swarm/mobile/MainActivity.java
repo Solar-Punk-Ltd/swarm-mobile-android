@@ -110,9 +110,9 @@ public class MainActivity extends AppCompatActivity implements SwarmNode.SwarmNo
             public void run() {
                 statusText.setText(status);
                 if (status.equals("Running")) {
-                    statusText.setTextColor(getResources().getColor(R.color.status_running, null));
+                    statusText.setTextColor(getResources().getColor(R.color.status_running));
                 } else {
-                    statusText.setTextColor(getResources().getColor(R.color.status_stopped, null));
+                    statusText.setTextColor(getResources().getColor(R.color.status_stopped));
                 }
             }
         });
