@@ -1,19 +1,17 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
 }
 
 android {
-    namespace 'com.swarm.mobile'
+    namespace 'com.swarm.lib'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.swarm.mobile"
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -29,8 +27,6 @@ android {
 }
 
 dependencies {
-    implementation project(':swarmlib')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 }

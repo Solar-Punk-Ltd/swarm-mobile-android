@@ -5,12 +5,11 @@
 echo "=== Swarm Mobile Android Build Script ==="
 echo ""
 
-# Step 1: Add .aar file
-echo "Step 1: Add your Swarm library .aar file"
-echo "Place your .aar file in the app/libs/ directory"
-echo "Example: cp your-swarm-library.aar app/libs/"
+# Step 1: Build the library
+echo "Step 1: Building swarmlib (.aar)..."
+echo "./gradlew :swarmlib:assembleRelease"
 echo ""
-echo "The .aar must provide the com.swarm.lib.SwarmNode class"
+echo "This will create: swarmlib/build/outputs/aar/swarmlib-release.aar"
 echo ""
 
 # Step 2: Build the app
@@ -27,23 +26,30 @@ echo ""
 
 echo "=== How the .aar is embedded ==="
 echo ""
-echo "The app module loads .aar files from app/libs/ via:"
+echo "The app module depends on the swarmlib module via:"
 echo "  dependencies {"
-echo "      implementation fileTree(dir: 'libs', include: ['*.aar'])"
+echo "      implementation project(':swarmlib')"
 echo "  }"
 echo ""
 echo "When built, Gradle automatically:"
-echo "1. Includes all .aar files from app/libs/"
-echo "2. Merges the .aar into the app's dependencies"
+echo "1. Compiles swarmlib into a .aar file"
+echo "2. Includes the .aar in the app's dependencies"
 echo "3. Packages everything into the final APK"
+echo ""
+
+echo "=== Customizing the Swarm Implementation ==="
+echo ""
+echo "The swarmlib module provides a starter implementation."
+echo "You can:"
+echo "1. Replace the implementation in swarmlib/src/main/java/com/swarm/lib/SwarmNode.java"
+echo "2. Or wrap your own .aar by importing it into the swarmlib module"
 echo ""
 
 echo "=== Requirements ==="
 echo ""
 echo "- Java 11 or higher (compatible with JDK 17-21)"
-echo "- Gradle 8.13.2+"
+echo "- Gradle 8.13+"
 echo "- Android SDK (API 21+)"
-echo "- Your Swarm library .aar file in app/libs/"
 echo ""
 
 echo "Build script completed. Review the steps above to build the project."
