@@ -10,4 +10,16 @@
     <string name="connect_peer">Connect Peer</string>
     <string name="peer_id_hint">Enter Peer ID</string>
     <string name="node_info">Node Information</string>
+    <string name="node_configuration">Node Configuration</string>
+    <string name="node_mode">Node Mode:</string>
+    <string name="rpc_endpoint">RPC Endpoint</string>
+    <string name="nat_address">NAT Address</string>
+    <string name="welcome_message">Welcome Message</string>
+    <string name="configuration">Configuration</string>
+
+    <string-array name="node_modes">
+        <item>ultra light</item>
+        <item>light</item>
+    </string-array>
 </resources>
+
