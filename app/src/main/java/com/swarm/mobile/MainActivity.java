@@ -1,160 +1,158 @@
 package com.swarm.mobile;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.swarm.lib.NodeInfo;
+import com.swarm.lib.NodeStatus;
 import com.swarm.lib.SwarmNode;
+import com.swarm.lib.SwarmNodeListener;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class MainActivity extends AppCompatActivity implements SwarmNode.SwarmNodeListener {
+public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
 
     private SwarmNode swarmNode;
-    private TextView nodeIdText;
-    private TextView statusText;
-    private TextView peersListText;
-    private MaterialButton startButton;
-    private MaterialButton stopButton;
-    private MaterialButton connectPeerButton;
-    private TextInputEditText peerIdInput;
-    private List<String> connectedPeers;
+    private TextView walletAddressText;
+    private TextView nodeStatusText;
+    private TextView peerCountText;
+    private MaterialButton startDownloadButton;
+    private TextInputEditText hashInput;
+
+    private Handler refreshHandler;
+
+    private byte[] pendingDownloadData;
+    private String pendingDownloadFilename;
+
+    private ActivityResultLauncher<Intent> createDocumentLauncher;
+
+    private String password;
+    private String rpcEndpoint;
+    private String natAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize SwarmNode
-        swarmNode = new SwarmNode();
+        Intent intent = getIntent();
+        if (intent != null) {
+            password = intent.getStringExtra(IntentKeys.PASSWORD);
+            rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
+            natAddress = intent.getStringExtra(IntentKeys.NAT_ADDRESS);
+        }
+
+        walletAddressText = findViewById(R.id.walletAddressText);
+        nodeStatusText = findViewById(R.id.statusText);
+        startDownloadButton = findViewById(R.id.downloadByHashButton);
+        hashInput = findViewById(R.id.hashInput);
+
+        peerCountText = findViewById(R.id.peersListText);
+
+        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, natAddress);
         swarmNode.addListener(this);
-        connectedPeers = new ArrayList<>();
 
-        // Initialize views
-        nodeIdText = findViewById(R.id.nodeIdText);
-        statusText = findViewById(R.id.statusText);
-        peersListText = findViewById(R.id.peersListText);
-        startButton = findViewById(R.id.startButton);
-        stopButton = findViewById(R.id.stopButton);
-        connectPeerButton = findViewById(R.id.connectPeerButton);
-        peerIdInput = findViewById(R.id.peerIdInput);
+        new Thread(() -> swarmNode.start()).start();
 
-        // Set node ID
-        nodeIdText.setText(swarmNode.getNodeId());
-
-        // Set button listeners
-        startButton.setOnClickListener(new View.OnClickListener() {
+        startDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startNode();
+                startDownload();
             }
         });
 
-        stopButton.setOnClickListener(new View.OnClickListener() {
+        refreshHandler = new Handler(Looper.getMainLooper());
+        Runnable refreshRunnable = new Runnable() {
             @Override
-            public void onClick(View v) {
-                stopNode();
+            public void run() {
+                updatePeerCount();
+                refreshHandler.postDelayed(this, 5000);
             }
-        });
+        };
+        refreshHandler.post(refreshRunnable);
 
-        connectPeerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                connectToPeer();
-            }
-        });
+        createDocumentLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                        try {
+                            var uri = result.getData().getData();
+                            var outputStream = getContentResolver().openOutputStream(uri);
+                            if (outputStream != null && pendingDownloadData != null) {
+                                outputStream.write(pendingDownloadData);
+                                outputStream.close();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            pendingDownloadData = null;
+                            pendingDownloadFilename = null;
+                        }
+                    }
+                }
+        );
     }
 
-    private void startNode() {
-        swarmNode.start();
-        startButton.setEnabled(false);
-        stopButton.setEnabled(true);
-        connectPeerButton.setEnabled(true);
-        Toast.makeText(this, "Swarm node started", Toast.LENGTH_SHORT).show();
+    @SuppressLint("SetTextI18n")
+    private void updatePeerCount() {
+        var count = this.swarmNode.getConnectedPeers();
+
+        Logger.getGlobal().log(Level.INFO, "Connected peers: " + count);
+
+        peerCountText.setText("" + count);
     }
 
-    private void stopNode() {
-        swarmNode.stop();
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
-        connectPeerButton.setEnabled(false);
-        
-        // Clear peers on stop
-        connectedPeers.clear();
-        updatePeersList();
-        
-        Toast.makeText(this, "Swarm node stopped", Toast.LENGTH_SHORT).show();
-    }
 
-    private void connectToPeer() {
-        String peerId = peerIdInput.getText().toString().trim();
-        if (!peerId.isEmpty()) {
-            swarmNode.connectPeer(peerId);
-            peerIdInput.setText("");
-            Toast.makeText(this, "Connected to peer: " + peerId, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Please enter a peer ID", Toast.LENGTH_SHORT).show();
-        }
+    private void startDownload() {
+        var hash = Objects.requireNonNull(hashInput.getText()).toString().trim();
+
+        this.swarmNode.download(hash);
     }
 
     @Override
-    public void onStatusChanged(String status) {
+    public void onNodeInfoChanged(NodeInfo nodeInfo) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                statusText.setText(status);
-                if (status.equals("Running")) {
-                    statusText.setTextColor(getResources().getColor(R.color.status_running));
+                nodeStatusText.setText(nodeInfo.status().name());
+
+                walletAddressText.setText(nodeInfo.walletAddress());
+
+                if (NodeStatus.Running == nodeInfo.status()) {
+                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
+                    startDownloadButton.setEnabled(true);
+                    hashInput.setEnabled(true);
                 } else {
-                    statusText.setTextColor(getResources().getColor(R.color.status_stopped));
+                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
                 }
             }
         });
     }
 
     @Override
-    public void onPeerConnected(String peerId) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (!connectedPeers.contains(peerId)) {
-                    connectedPeers.add(peerId);
-                    updatePeersList();
-                }
-            }
+    public void onDownloadFinished(String filename, byte[] data) {
+        runOnUiThread(() -> {
+            pendingDownloadData = data;
+            pendingDownloadFilename = filename;
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_TITLE, filename);
+            createDocumentLauncher.launch(intent);
         });
-    }
-
-    @Override
-    public void onPeerDisconnected(String peerId) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                connectedPeers.remove(peerId);
-                updatePeersList();
-            }
-        });
-    }
-
-    private void updatePeersList() {
-        if (connectedPeers.isEmpty()) {
-            peersListText.setText(R.string.no_peers);
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < connectedPeers.size(); i++) {
-                sb.append("• ").append(connectedPeers.get(i));
-                if (i < connectedPeers.size() - 1) {
-                    sb.append("\n");
-                }
-            }
-            peersListText.setText(sb.toString());
-        }
     }
 
     @Override

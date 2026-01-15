@@ -16,6 +16,9 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         mavenCentral()
+        flatDir {
+            dirs 'swarmlib/libs'
+        }
     }
 }
 

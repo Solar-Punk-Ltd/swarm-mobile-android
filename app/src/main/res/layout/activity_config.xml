@@ -33,21 +33,23 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp"/>
 
-                <!-- Node Mode -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/node_mode"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"/>
+                <!-- Password -->
 
-                <Spinner
-                    android:id="@+id/nodeModeSpinner"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:minHeight="48dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:hint="@string/password"
+                    app:endIconMode="password_toggle"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/passwordInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- RPC Endpoint -->
                 <com.google.android.material.textfield.TextInputLayout
@@ -61,6 +63,7 @@
                         android:id="@+id/rpcEndpointInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:text="@string/default_rpc_endpoint"
                         android:inputType="textUri"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -74,21 +77,6 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/natAddressInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Welcome Message -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="@string/welcome_message"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/welcomeMessageInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"/>
