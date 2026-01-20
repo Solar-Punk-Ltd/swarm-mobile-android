@@ -33,8 +33,11 @@ swarm-mobile-android-native/
 
 ## Building the Project
 
-## Get Swarm bee-lite binaries
-// TODO 
+## Get Swarm bee-lite-java binaries
+Follow the instructions at [bee-lite-java](https://github.com/Solar-Punk-Ltd/bee-lite-java) repository to get the binary.
+Copy the .aar file and the .jar into the `swarmlib/libs/` directory.
+At build.gradle these files already referenced but double check `implementation(name: 'bee-lite', ext: 'aar')` - rename if you wish.
+More help in this topic here in a [POC](https://github.com/Solar-Punk-Ltd/GoOnAndroidPoc)
 
 ### Build the Swarm Library (.aar)
 ```bash
@@ -64,20 +67,12 @@ The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 - Start/Stop controls for the Swarm node
 - Real-time status updates
 
-## UI Components
-1. **Node Information Card**: Displays the unique node ID and current status
-2. **Control Buttons**: Start and Stop buttons to manage node lifecycle
-3. **Peer Connection**: Input field and button to connect to other peers
-4. **Peers Count**: Shows all currently connected peers count
-
 ## Usage
 1. Build the app using Gradle
 2. Install the APK on an Android device (API 21+)
 3. Launch the "Swarm Mobile" app
 4. Tap "Start Node" to start the Swarm node
-5. Enter a peer ID and tap "Connect Peer" to establish connections
-6. View connected peers in the peers list
-7. Tap "Stop Node" when done
+5. Enter swarm hash to download
 
 
 ## Development
