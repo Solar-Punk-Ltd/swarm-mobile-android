@@ -31,12 +31,12 @@ swarm-mobile-android-native/
 - Java 17 or higher
 - Gradle 8.13 or higher
 
-## Building the Project
+## Building the Project 
 
 ## Get Swarm bee-lite-java binaries
 Follow the instructions at [bee-lite-java](https://github.com/Solar-Punk-Ltd/bee-lite-java) repository to get the binary.
 Copy the .aar file and the .jar into the `swarmlib/libs/` directory.
-At build.gradle these files already referenced but double check `implementation(name: 'bee-lite', ext: 'aar')` - rename if you wish.
+At build.gradle these files already referenced but double check `implementation(name: 'mobile', ext: 'aar')` - rename if you wish.
 More help in this topic here in a [POC](https://github.com/Solar-Punk-Ltd/GoOnAndroidPoc)
 
 ### Build the Swarm Library (.aar)
