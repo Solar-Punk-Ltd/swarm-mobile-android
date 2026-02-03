@@ -63,23 +63,7 @@
                         android:id="@+id/rpcEndpointInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/default_rpc_endpoint"
                         android:inputType="textUri"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- NAT Address -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:hint="@string/nat_address"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/natAddressInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Start Button -->

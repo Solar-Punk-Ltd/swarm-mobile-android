@@ -17,15 +17,13 @@ public class SwarmNode {
     private final String dataDir;
     private final String password;
     private final String rpcEndpoint;
-    private final String natAddress;
 
 
-    public SwarmNode(String dataDir, String password, String rpcEndpoint, String natAddress) {
+    public SwarmNode(String dataDir, String password, String rpcEndpoint) {
         this.listeners = new ArrayList<>();
         this.dataDir = dataDir;
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
-        this.natAddress = natAddress;
         this.nodeInfo = new NodeInfo("", NodeStatus.Started);
     }
 
@@ -47,14 +45,16 @@ public class SwarmNode {
         try {
             this.mobileNode = connect();
             updateNodeInfo(mobileNode.walletAddress(), NodeStatus.Running);
-        } catch (RuntimeException re) {
+        } catch (Exception e) {
             updateNodeInfo(nodeInfo.walletAddress(), NodeStatus.Stopped);
-            throw re;
+            throw new RuntimeException(e);
         }
     }
 
-    public void stop() {
-        this.mobileNode = null; // TODO implement explicit stop method in Go code
+    public void stopNode() throws Exception {
+        this.listeners.clear();
+        this.mobileNode.shutdown();
+        this.mobileNode = null;
         updateNodeInfo("", NodeStatus.Stopped);
         notifyNodeInfoChanged();
     }
@@ -120,7 +120,6 @@ public class SwarmNode {
         options.setUsePostageSnapshot(false);
         options.setMainnet(true);
         options.setNetworkID(1);
-        options.setNATAddr(natAddress);
         options.setRetrievalCaching(true);
 
         return options;
@@ -133,6 +132,8 @@ public class SwarmNode {
         try {
             node = Mobile.startNode(options, password, "3");
         } catch (Exception e) {
+            this.listeners.clear();
+            this.mobileNode = null;
             throw new RuntimeException(e);
         }
 

@@ -78,6 +78,18 @@
                         android:textSize="14sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/stopNodeButton"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/stop_node"
+                    android:textColor="@color/design_default_color_error"
+                    app:icon="@android:drawable/ic_media_pause"
+                    app:iconTint="@color/design_default_color_error"
+                    app:strokeColor="@color/design_default_color_error" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
