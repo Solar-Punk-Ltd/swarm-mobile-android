@@ -8,10 +8,10 @@
     <string name="status">Status:</string>
 
     <string name="configuration">Configuration</string>
+    <string name="node_mode">Node Mode</string>
     <string name="password">Password</string>
     <string name="rpc_endpoint">RPC Endpoint</string>
     <string name="default_rpc_endpoint">https://xdai.fairdatasociety.org</string>
-    <string name="nat_address">NAT Address</string>
 
     <string name="download">Download by Swarm Hash</string>
     <string name="hash_hint">Swarm Hash</string>

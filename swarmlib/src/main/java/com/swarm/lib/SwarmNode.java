@@ -17,15 +17,15 @@ public class SwarmNode {
     private final String dataDir;
     private final String password;
     private final String rpcEndpoint;
-    private final String natAddress;
+    private final Boolean lightModeEnabled;
 
 
-    public SwarmNode(String dataDir, String password, String rpcEndpoint, String natAddress) {
+    public SwarmNode(String dataDir, String password, String rpcEndpoint, Boolean lightModeEnabled) {
         this.listeners = new ArrayList<>();
         this.dataDir = dataDir;
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
-        this.natAddress = natAddress;
+        this.lightModeEnabled = lightModeEnabled;
         this.nodeInfo = new NodeInfo("", NodeStatus.Started);
     }
 
@@ -102,7 +102,6 @@ public class SwarmNode {
         }
     }
 
-
     @NonNull
     private MobileNodeOptions getLiteOptions() {
 
@@ -115,12 +114,11 @@ public class SwarmNode {
         options.setBlockchainRpcEndpoint(rpcEndpoint);
         options.setSwapInitialDeposit("0");
         options.setPaymentThreshold("100000000");
-        options.setSwapEnable(false);
-        options.setChequebookEnable(true);
+        options.setSwapEnable(lightModeEnabled);
+        options.setChequebookEnable(lightModeEnabled);
         options.setUsePostageSnapshot(false);
         options.setMainnet(true);
         options.setNetworkID(1);
-        options.setNATAddr(natAddress);
         options.setRetrievalCaching(true);
 
         return options;

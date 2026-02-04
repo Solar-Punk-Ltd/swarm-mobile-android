@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     private String password;
     private String rpcEndpoint;
-    private String natAddress;
+    private String nodeMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         if (intent != null) {
             password = intent.getStringExtra(IntentKeys.PASSWORD);
             rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
-            natAddress = intent.getStringExtra(IntentKeys.NAT_ADDRESS);
+            nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
         walletAddressText = findViewById(R.id.walletAddressText);
@@ -62,17 +62,12 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
         peerCountText = findViewById(R.id.peersListText);
 
-        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, natAddress);
+        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
         swarmNode.addListener(this);
 
         new Thread(() -> swarmNode.start()).start();
 
-        startDownloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startDownload();
-            }
-        });
+        startDownloadButton.setOnClickListener(v -> startDownload());
 
         refreshHandler = new Handler(Looper.getMainLooper());
         Runnable refreshRunnable = new Runnable() {
@@ -124,20 +119,17 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     @Override
     public void onNodeInfoChanged(NodeInfo nodeInfo) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                nodeStatusText.setText(nodeInfo.status().name());
+        runOnUiThread(() -> {
+            nodeStatusText.setText(nodeInfo.status().name());
 
-                walletAddressText.setText(nodeInfo.walletAddress());
+            walletAddressText.setText(nodeInfo.walletAddress());
 
-                if (NodeStatus.Running == nodeInfo.status()) {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
-                    startDownloadButton.setEnabled(true);
-                    hashInput.setEnabled(true);
-                } else {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
-                }
+            if (NodeStatus.Running == nodeInfo.status()) {
+                nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
+                startDownloadButton.setEnabled(true);
+                hashInput.setEnabled(true);
+            } else {
+                nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
             }
         });
     }
