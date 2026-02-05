@@ -26,36 +26,37 @@ public class SwarmNode {
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
         this.lightModeEnabled = lightModeEnabled;
-        this.nodeInfo = new NodeInfo("", NodeStatus.Started);
+        this.nodeInfo = new NodeInfo("", "", "",NodeStatus.Started);
     }
 
     public void addListener(SwarmNodeListener listener) {
         listeners.add(listener);
     }
-
+    @SuppressWarnings("unused")
     public void removeListener(SwarmNodeListener listener) {
         listeners.remove(listener);
     }
 
-    public void updateNodeInfo(String walletAddress, NodeStatus nodeStatus) {
-        this.nodeInfo = new NodeInfo(walletAddress, nodeStatus);
+    public void updateNodeInfo(String walletAddress, String chequebookAddress, String chequebookBalance, NodeStatus nodeStatus) {
+        this.nodeInfo = new NodeInfo(walletAddress, chequebookAddress, chequebookBalance, nodeStatus);
         notifyNodeInfoChanged();
     }
 
     public void start() {
-        updateNodeInfo(nodeInfo.walletAddress(), NodeStatus.Started);
+        updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Started);
         try {
             this.mobileNode = connect();
-            updateNodeInfo(mobileNode.walletAddress(), NodeStatus.Running);
-        } catch (RuntimeException re) {
-            updateNodeInfo(nodeInfo.walletAddress(), NodeStatus.Stopped);
-            throw re;
+            var blockchainData = mobileNode.blockchainData();
+            updateNodeInfo(blockchainData.getWalletAddress(), blockchainData.getChequebookAddress(), blockchainData.getChequebookBalance(), NodeStatus.Running);
+        } catch (Exception e) {
+            updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Stopped);
+            throw new RuntimeException(e);
         }
     }
 
     public void stop() {
         this.mobileNode = null; // TODO implement explicit stop method in Go code
-        updateNodeInfo("", NodeStatus.Stopped);
+        updateNodeInfo("", "", "",NodeStatus.Stopped);
         notifyNodeInfoChanged();
     }
 

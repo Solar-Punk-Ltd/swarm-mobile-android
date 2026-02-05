@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -26,7 +25,9 @@ import java.util.logging.Logger;
 public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
 
     private SwarmNode swarmNode;
-    private TextView walletAddressText;
+    private TextView walletAddressData;
+    private TextView chequebookAddressData;
+    private TextView chequebookBalanceData;
     private TextView nodeStatusText;
     private TextView peerCountText;
     private MaterialButton startDownloadButton;
@@ -55,7 +56,9 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
-        walletAddressText = findViewById(R.id.walletAddressText);
+        walletAddressData = findViewById(R.id.walletAddressData);
+        chequebookAddressData = findViewById(R.id.chequebookAddressData);
+        chequebookBalanceData = findViewById(R.id.chequebookBalanceData);
         nodeStatusText = findViewById(R.id.statusText);
         startDownloadButton = findViewById(R.id.downloadByHashButton);
         hashInput = findViewById(R.id.hashInput);
@@ -122,7 +125,9 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         runOnUiThread(() -> {
             nodeStatusText.setText(nodeInfo.status().name());
 
-            walletAddressText.setText(nodeInfo.walletAddress());
+            walletAddressData.setText(nodeInfo.walletAddress());
+            chequebookAddressData.setText(nodeInfo.chequebookAddress());
+            chequebookBalanceData.setText(nodeInfo.chequebookBalance());
 
             if (NodeStatus.Running == nodeInfo.status()) {
                 nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));

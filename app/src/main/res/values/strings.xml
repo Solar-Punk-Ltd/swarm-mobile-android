@@ -17,7 +17,10 @@
     <string name="hash_hint">Swarm Hash</string>
     <string name="download_button">Download</string>
 
-    <string name="wallet_info">Wallet Information\n</string>
+    <string name="blockchain_info">Blockchain Information\n</string>
+    <string name="wallet_address">Wallet Address\n</string>
+    <string name="chequebook_address">Chequebook Address\n</string>
+    <string name="chequebook_balance">Chequebook Balance\n</string>
 
 
     <string name="peers_info">Connected Peers: \n</string>
