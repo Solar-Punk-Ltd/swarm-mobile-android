@@ -26,12 +26,13 @@ public class SwarmNode {
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
         this.lightModeEnabled = lightModeEnabled;
-        this.nodeInfo = new NodeInfo("", "", "",NodeStatus.Started);
+        this.nodeInfo = new NodeInfo("", "", "", NodeStatus.Started);
     }
 
     public void addListener(SwarmNodeListener listener) {
         listeners.add(listener);
     }
+
     @SuppressWarnings("unused")
     public void removeListener(SwarmNodeListener listener) {
         listeners.remove(listener);
@@ -56,7 +57,7 @@ public class SwarmNode {
 
     public void stop() {
         this.mobileNode = null; // TODO implement explicit stop method in Go code
-        updateNodeInfo("", "", "",NodeStatus.Stopped);
+        updateNodeInfo("", "", "", NodeStatus.Stopped);
         notifyNodeInfoChanged();
     }
 
@@ -85,21 +86,22 @@ public class SwarmNode {
 
     public void download(String hash) {
         if (isRunning()) {
-            try {
-                var file = mobileNode.download(hash);
+            new Thread(() -> {
+                try {
+                    var file = mobileNode.download(hash);
 
-                if (file == null) {
-                    Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
-                    return;
+                    if (file == null) {
+                        Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
+                        return;
+                    }
+
+                    for (SwarmNodeListener listener : listeners) {
+                        listener.onDownloadFinished(file.getName(), file.getData());
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-
-                for (SwarmNodeListener listener : listeners) {
-                    listener.onDownloadFinished(file.getName(), file.getData());
-                }
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            }).start();
         }
     }
 
