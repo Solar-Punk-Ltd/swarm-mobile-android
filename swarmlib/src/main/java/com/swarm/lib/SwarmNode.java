@@ -1,7 +1,10 @@
 package com.swarm.lib;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -9,6 +12,7 @@ import java.util.logging.Logger;
 import mobile.Mobile;
 import mobile.MobileNode;
 import mobile.MobileNodeOptions;
+import mobile.StampData;
 
 public class SwarmNode {
     private NodeInfo nodeInfo;
@@ -82,6 +86,62 @@ public class SwarmNode {
         }
 
         return 0;
+    }
+
+    public void getAllStamps(StampListener listener) {
+
+        if (mobileNode == null) {
+            throw new RuntimeException("Bee is not initialized");
+        }
+
+        if (isRunning()) {
+            new Thread(() ->
+            {
+                mobileNode.fetchStamps();
+                var count = mobileNode.getStampCount();
+                if (count == 0) {
+                    Log.i("SwarmNode", "No stamps found");
+                    return;
+                }
+
+                Log.i("SwarmNode", "Total stamps: " + count);
+
+                var list = new ArrayList<Stamp>();
+                for (int i = 0; i < count; i++) {
+                    var stampData = mobileNode.getStamp(i);
+                    Log.i("SwarmNode", "Stamp " + i + ": " + stampData.getLabel() + ", batchID: " + new BigInteger(stampData.getBatchID()).toString(16));
+                    list.add(convertStampDataToStamp(stampData));
+                }
+
+                listener.stampsReceived(list);
+            }).start();
+        }
+
+    }
+
+    private static Stamp convertStampDataToStamp(StampData stampData) {
+        return new Stamp(
+                stampData.getLabel(),
+                stampData.getBatchID(),
+                stampData.getBatchAmount(),
+                stampData.getBatchDepth(),
+                stampData.getBucketDepth(),
+                stampData.getImmutableFlag()
+        );
+    }
+
+    public void buyStamp(String amount, String depth, String label, boolean immutable, StampListener listener) {
+        if (isRunning()) {
+            new Thread(() -> {
+                try {
+                    var hash = mobileNode.buyStamp(amount, depth, label, immutable);
+                    listener.stampCreated(hash);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }).start();
+        }
     }
 
     public void download(String hash) {

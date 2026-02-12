@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
@@ -47,9 +48,12 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
+        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
+        swarmNode.addListener(this);
+
         nodeFragment = new NodeFragment();
         downloadFragment = new DownloadFragment();
-        uploadFragment = new UploadFragment();
+        uploadFragment = new UploadFragment(swarmNode);
 
         downloadFragment.setDownloadListener(this::startDownload);
 
@@ -80,8 +84,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             bottomNavigation.getMenu().findItem(R.id.navigation_upload).setVisible(false);
         }
 
-        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
-        swarmNode.addListener(this);
 
         new Thread(() -> swarmNode.start()).start();
 

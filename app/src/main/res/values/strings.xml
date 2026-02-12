@@ -32,6 +32,19 @@
     <string name="select_file">Select File</string>
     <string name="upload_button">Upload to Swarm</string>
 
+    <string name="stamp_management">Stamp Management</string>
+    <string name="select_stamp">Select Stamp</string>
+    <string name="selected_stamp">Selected Stamp</string>
+    <string name="create_stamp">Create Stamp</string>
+    <string name="stamp_amount">Amount</string>
+    <string name="stamp_depth">Depth</string>
+    <string name="stamp_label">Label</string>
+    <string name="stamp_immutable">Immutable</string>
+    <string name="stamp_details">Stamp details</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="select">Select</string>
+
     <string-array name="node_modes">
         <item>ultra light</item>
         <item>light</item>
