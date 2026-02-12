@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -23,7 +24,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     private Handler refreshHandler;
 
     private byte[] pendingDownloadData;
-    private String pendingDownloadFilename;
 
     private ActivityResultLauncher<Intent> createDocumentLauncher;
 
@@ -110,10 +110,9 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
                                 outputStream.close();
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e("MainActivity", "Error saving downloaded file", e);
                         } finally {
                             pendingDownloadData = null;
-                            pendingDownloadFilename = null;
                         }
                     }
                 }
@@ -148,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     public void onDownloadFinished(String filename, byte[] data) {
         runOnUiThread(() -> {
             pendingDownloadData = data;
-            pendingDownloadFilename = filename;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");

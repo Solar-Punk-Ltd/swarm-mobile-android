@@ -30,7 +30,6 @@ import java.util.Locale;
 public class UploadFragment extends Fragment implements StampListener, OnStampClickListener {
 
     private MaterialButton uploadButton;
-    private MaterialButton selectStampButton;
     private MaterialButton createStampButton;
 
     private MaterialCardView selectedStampCard;
@@ -53,8 +52,9 @@ public class UploadFragment extends Fragment implements StampListener, OnStampCl
         View view = inflater.inflate(R.layout.fragment_upload, container, false);
 
         MaterialButton selectFileButton = view.findViewById(R.id.selectFileButton);
+        MaterialButton selectStampButton = view.findViewById(R.id.selectStampButton);
+
         uploadButton = view.findViewById(R.id.uploadButton);
-        selectStampButton = view.findViewById(R.id.selectStampButton);
         createStampButton = view.findViewById(R.id.createStampButton);
 
         selectedStampCard = view.findViewById(R.id.selectedStampCard);
