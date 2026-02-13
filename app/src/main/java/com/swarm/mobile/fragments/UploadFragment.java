@@ -80,9 +80,13 @@ public class UploadFragment extends Fragment implements StampListener,
         if (getContext() != null) {
             uploadHistoryStorage = new UploadHistoryStorage(getContext());
 
-            List<UploadRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
-            uploadHistory.addAll(savedHistory);
-            Log.i("UploadFragment", "Loaded " + savedHistory.size() + " upload records from storage");
+            if (uploadHistory.isEmpty()) {
+                List<UploadRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
+                uploadHistory.addAll(savedHistory);
+                Log.i("UploadFragment", "Loaded " + savedHistory.size() + " upload records from storage");
+            } else {
+                Log.i("UploadFragment", "Upload history already loaded, skipping to avoid duplicates");
+            }
         }
 
         filePickerLauncher = registerForActivityResult(
@@ -281,6 +285,13 @@ public class UploadFragment extends Fragment implements StampListener,
         Log.i("UploadFragment", "Upload successful with hash: " + hash);
 
         if (selectedFileName != null && selectedStamp != null) {
+            UploadRecord existingRecord = findRecordByHash(hash);
+
+            if (existingRecord != null) {
+                uploadHistory.remove(existingRecord);
+                Log.i("UploadFragment", "Found existing record for hash, updating it");
+            }
+
             UploadRecord record = new UploadRecord(
                     selectedFileName,
                     hash,
@@ -412,6 +423,20 @@ public class UploadFragment extends Fragment implements StampListener,
                     uploadHistory.size());
             uploadCountText.setText(countText);
         }
+    }
+
+    private UploadRecord findRecordByHash(String hash) {
+        if (hash == null || hash.isEmpty()) {
+            return null;
+        }
+
+        for (UploadRecord record : uploadHistory) {
+            if (hash.equals(record.hash())) {
+                return record;
+            }
+        }
+
+        return null;
     }
 
 
