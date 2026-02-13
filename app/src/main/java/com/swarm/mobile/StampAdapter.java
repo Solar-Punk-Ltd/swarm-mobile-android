@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.swarm.lib.Stamp;
+import com.swarm.mobile.interfaces.OnStampClickListener;
+import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.List;
 import java.util.Locale;
@@ -44,11 +46,13 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
 
     static public class StampViewHolder extends RecyclerView.ViewHolder {
         private final TextView stampIdText;
+        private final TruncatedTextView stampBatchIdView;
         private final TextView stampDetailsText;
 
         public StampViewHolder(@NonNull View itemView) {
             super(itemView);
             stampIdText = itemView.findViewById(R.id.stampIdText);
+            stampBatchIdView = itemView.findViewById(R.id.stampBatchIdView);
             stampDetailsText = itemView.findViewById(R.id.stampDetailsText);
         }
 
@@ -64,13 +68,11 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
 
             stampIdText.setText(displayLabel);
 
-            String batchIdHex = bytesToHex(stamp.batchID());
-            String shortBatchId = batchIdHex.length() > 16
-                ? batchIdHex.substring(0, 16) + "..."
-                : batchIdHex;
+            String batchIdHex = stamp.batchID();
+            stampBatchIdView.setText(batchIdHex);
+            stampBatchIdView.setMaxLength(20);
 
-            String details = String.format(Locale.US, "ID: %s\nCapacity (%s): %s \nDepth: %d",
-                shortBatchId,
+            String details = String.format(Locale.US, "Capacity (%s): %s \nDepth: %d",
                 stamp.immutable() ? "immutable" : "mutable",
                 stamp.amount(),
                 stamp.depth());

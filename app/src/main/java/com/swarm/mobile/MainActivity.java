@@ -16,7 +16,10 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.SwarmNode;
-import com.swarm.lib.SwarmNodeListener;
+import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.mobile.fragments.DownloadFragment;
+import com.swarm.mobile.fragments.NodeFragment;
+import com.swarm.mobile.fragments.UploadFragment;
 
 public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
 

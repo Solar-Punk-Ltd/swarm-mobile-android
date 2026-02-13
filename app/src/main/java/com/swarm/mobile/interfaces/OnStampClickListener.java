@@ -1,4 +1,4 @@
-package com.swarm.mobile;
+package com.swarm.mobile.interfaces;
 
 import com.swarm.lib.Stamp;
 

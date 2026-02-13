@@ -4,7 +4,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import java.math.BigInteger;
+import com.swarm.interfaces.StampListener;
+import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.interfaces.UploadListener;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -109,7 +112,7 @@ public class SwarmNode {
                 var list = new ArrayList<Stamp>();
                 for (int i = 0; i < count; i++) {
                     var stampData = mobileNode.getStamp(i);
-                    Log.i("SwarmNode", "Stamp " + i + ": " + stampData.getLabel() + ", batchID: " + new BigInteger(stampData.getBatchID()).toString(16));
+                    Log.i("SwarmNode", "Stamp " + i + ": " + stampData.getLabel() + ", batchID: " + stampData.getBatchIdHex());
                     list.add(convertStampDataToStamp(stampData));
                 }
 
@@ -122,7 +125,7 @@ public class SwarmNode {
     private static Stamp convertStampDataToStamp(StampData stampData) {
         return new Stamp(
                 stampData.getLabel(),
-                stampData.getBatchID(),
+                stampData.getBatchIdHex(),
                 stampData.getBatchAmount(),
                 stampData.getBatchDepth(),
                 stampData.getBucketDepth(),
@@ -159,6 +162,37 @@ public class SwarmNode {
                         listener.onDownloadFinished(file.getName(), file.getData());
                     }
                 } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }
+    }
+
+    public void upload(byte[] content, String filename, String contentType, Stamp stamp,
+                       UploadListener uploadListener
+    ) {
+        if (isRunning()) {
+            new Thread(() -> {
+                try {
+                    var hash = mobileNode.upload(stamp.batchID(),
+                            filename,
+                            contentType,
+                            false,
+                            "",
+                            false,
+                            Byte.parseByte("0"),
+                            content);
+
+                    if (hash == null || hash.getReferenceHex().isEmpty()) {
+                        Logger.getLogger(this.getClass().getName()).info("Upload failed: hash is null or empty for file " + filename);
+                        uploadListener.onUploadFailed("Upload failed: hash is null or empty");
+                        return;
+                    }
+
+                    uploadListener.onUploadSuccessful(hash.getReferenceHex());
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).info("Unexpected error during upload: " + e.getMessage());
+                    uploadListener.onUploadFailed("Unexpected error during upload: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
             }).start();

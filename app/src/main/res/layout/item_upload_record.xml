@@ -14,11 +14,11 @@
         android:padding="12dp">
 
         <TextView
-            android:id="@+id/stampIdText"
+            android:id="@+id/uploadRecordFilename"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
             android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary" />
 
         <LinearLayout
@@ -31,23 +31,57 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/stampId"
+                android:text="@string/hash"
                 android:textSize="12sp"
                 android:textColor="?android:attr/textColorSecondary" />
 
             <com.swarm.mobile.views.TruncatedTextView
-                android:id="@+id/stampBatchIdView"
+                android:id="@+id/uploadRecordHash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/stampDetailsText"
+            android:id="@+id/uploadRecordDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
             android:layout_marginTop="4dp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:lineSpacingExtra="2dp" />
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <TextView
+            android:id="@+id/uploadRecordStampLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stamp_id"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <com.swarm.mobile.views.TruncatedTextView
+                android:id="@+id/uploadRecordStampId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="?android:attr/listDivider" />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

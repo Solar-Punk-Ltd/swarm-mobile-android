@@ -1,7 +1,7 @@
 package com.swarm.lib;
 
 public record Stamp(String label,
-                    byte[] batchID,
+                    String batchID,
                     String amount,
                     byte depth,
                     byte bucketDepth,

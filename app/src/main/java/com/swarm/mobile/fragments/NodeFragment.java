@@ -1,4 +1,4 @@
-package com.swarm.mobile;
+package com.swarm.mobile.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
+import com.swarm.mobile.R;
 
 public class NodeFragment extends Fragment {
 

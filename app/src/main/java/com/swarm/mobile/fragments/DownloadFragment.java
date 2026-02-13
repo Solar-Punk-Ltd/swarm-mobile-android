@@ -1,4 +1,4 @@
-package com.swarm.mobile;
+package com.swarm.mobile.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +13,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
+import com.swarm.mobile.R;
 
 public class DownloadFragment extends Fragment {
 
