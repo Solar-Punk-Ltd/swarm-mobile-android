@@ -50,7 +50,7 @@
     <string name="show_uploads">Show Uploads</string>
     <string name="uploads_count">Uploaded Files: %d</string>
     <string name="close">Close</string>
-    <string name="toggle_full_text">Toggle full text</string>
+    <string name="toggle_full_text">Copy to clipboard</string>
     <string name="stampId">ID:</string>
     <string name="hash">Hash:</string>
     <string name="stamp_id">Stamp ID:</string>

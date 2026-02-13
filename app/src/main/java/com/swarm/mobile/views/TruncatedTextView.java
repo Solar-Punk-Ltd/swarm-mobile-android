@@ -1,11 +1,14 @@
 package com.swarm.mobile.views;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -19,6 +22,7 @@ public class TruncatedTextView extends LinearLayout {
     private String fullText = "";
     private boolean isExpanded = false;
     private int maxLength = 20;
+    private Context context;
 
     public TruncatedTextView(Context context) {
         super(context);
@@ -36,12 +40,13 @@ public class TruncatedTextView extends LinearLayout {
     }
 
     private void init(Context context) {
+        this.context = context;
         LayoutInflater.from(context).inflate(R.layout.view_truncated_text, this, true);
 
         textView = findViewById(R.id.truncatedText);
         toggleButton = findViewById(R.id.toggleButton);
 
-        toggleButton.setOnClickListener(v -> toggleTextDisplay());
+        toggleButton.setOnClickListener(v -> copyToClipboard());
 
         updateDisplay();
     }
@@ -61,9 +66,16 @@ public class TruncatedTextView extends LinearLayout {
         return fullText;
     }
 
-    private void toggleTextDisplay() {
-        isExpanded = !isExpanded;
-        updateDisplay();
+    private void copyToClipboard() {
+        if (fullText.isEmpty()) {
+            return;
+        }
+
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Copied Text", fullText);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show();
     }
 
     private void updateDisplay() {
@@ -74,17 +86,11 @@ public class TruncatedTextView extends LinearLayout {
         }
 
         if (fullText.length() <= maxLength) {
-            // Text is short enough, no need for toggle
             textView.setText(fullText);
             toggleButton.setVisibility(GONE);
         } else {
-            // Text needs truncation
-            if (isExpanded) {
-                textView.setText(fullText);
-            } else {
-                String truncated = StringUtils.ellipsizeMiddle(fullText, maxLength);
-                textView.setText(truncated);
-            }
+            String truncated = StringUtils.ellipsizeMiddle(fullText, maxLength);
+            textView.setText(truncated);
             toggleButton.setVisibility(VISIBLE);
         }
     }
