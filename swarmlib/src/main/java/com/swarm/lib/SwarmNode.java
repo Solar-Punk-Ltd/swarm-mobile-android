@@ -155,16 +155,28 @@ public class SwarmNode {
 
                     if (file == null) {
                         Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
+                        notifyHashNotFound();
                         return;
                     }
 
-                    for (SwarmNodeListener listener : listeners) {
-                        listener.onDownloadFinished(file.getName(), file.getData());
-                    }
+                    notifyDownloadSuccess(file.getName(), file.getData());
                 } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
             }).start();
+        }
+    }
+
+    private void notifyHashNotFound() {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onHashNotFound();
+        }
+    }
+
+    private void notifyDownloadSuccess(String fileName, byte[] data) {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onDownloadSuccess(fileName, data);
         }
     }
 
