@@ -1,4 +1,6 @@
-package com.swarm.lib;
+package com.swarm.interfaces;
+
+import com.swarm.lib.NodeInfo;
 
 public interface SwarmNodeListener {
     void onNodeInfoChanged(NodeInfo nodeInfo);

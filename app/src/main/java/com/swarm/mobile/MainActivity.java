@@ -5,81 +5,98 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
-import android.widget.TextView;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.swarm.lib.NodeInfo;
-import com.swarm.lib.NodeStatus;
 import com.swarm.lib.SwarmNode;
-import com.swarm.lib.SwarmNodeListener;
-
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.mobile.fragments.DownloadFragment;
+import com.swarm.mobile.fragments.NodeFragment;
+import com.swarm.mobile.fragments.UploadFragment;
 
 public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
 
     private SwarmNode swarmNode;
-    private TextView walletAddressText;
-    private TextView nodeStatusText;
-    private TextView peerCountText;
-    private MaterialButton startDownloadButton;
-    private TextInputEditText hashInput;
-
     private Handler refreshHandler;
 
     private byte[] pendingDownloadData;
-    private String pendingDownloadFilename;
 
     private ActivityResultLauncher<Intent> createDocumentLauncher;
 
     private String password;
     private String rpcEndpoint;
-    private String natAddress;
+    private String nodeMode;
+
+    private NodeFragment nodeFragment;
+    private DownloadFragment downloadFragment;
+    private UploadFragment uploadFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
         if (intent != null) {
             password = intent.getStringExtra(IntentKeys.PASSWORD);
             rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
-            natAddress = intent.getStringExtra(IntentKeys.NAT_ADDRESS);
+            nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
-        walletAddressText = findViewById(R.id.walletAddressText);
-        nodeStatusText = findViewById(R.id.statusText);
-        startDownloadButton = findViewById(R.id.downloadByHashButton);
-        hashInput = findViewById(R.id.hashInput);
-
-        peerCountText = findViewById(R.id.peersListText);
-
-        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, natAddress);
+        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
         swarmNode.addListener(this);
 
-        new Thread(() -> swarmNode.start()).start();
+        nodeFragment = new NodeFragment();
+        downloadFragment = new DownloadFragment();
+        uploadFragment = new UploadFragment(swarmNode);
 
-        startDownloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startDownload();
+        downloadFragment.setDownloadListener(this::startDownload);
+
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.navigation_node) {
+                selectedFragment = nodeFragment;
+            } else if (itemId == R.id.navigation_download) {
+                selectedFragment = downloadFragment;
+            } else if (itemId == R.id.navigation_upload) {
+                selectedFragment = uploadFragment;
             }
+
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+                return true;
+            }
+            return false;
         });
+
+        loadFragment(nodeFragment);
+        bottomNavigation.setSelectedItemId(R.id.navigation_node);
+
+        if (NodeMode.ULTRA_LIGHT.name().equals(nodeMode)) {
+            bottomNavigation.getMenu().findItem(R.id.navigation_upload).setVisible(false);
+        }
+
+
+        new Thread(() -> swarmNode.start()).start();
 
         refreshHandler = new Handler(Looper.getMainLooper());
         Runnable refreshRunnable = new Runnable() {
             @Override
             public void run() {
-                updatePeerCount();
-                refreshHandler.postDelayed(this, 5000);
+                var connectedPeersCount = updatePeerCount();
+                var delayInMillis = connectedPeersCount > 100 ? 5000 : 1000;
+                refreshHandler.postDelayed(this, delayInMillis);
             }
         };
         refreshHandler.post(refreshRunnable);
@@ -96,57 +113,43 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
                                 outputStream.close();
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e("MainActivity", "Error saving downloaded file", e);
                         } finally {
                             pendingDownloadData = null;
-                            pendingDownloadFilename = null;
                         }
                     }
                 }
         );
     }
 
-    @SuppressLint("SetTextI18n")
-    private void updatePeerCount() {
-        var count = this.swarmNode.getConnectedPeers();
-
-        Logger.getGlobal().log(Level.INFO, "Connected peers: " + count);
-
-        peerCountText.setText("" + count);
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.commit();
     }
 
+    @SuppressLint("SetTextI18n")
+    private long updatePeerCount() {
+        var connectedPeersCount = this.swarmNode.getConnectedPeers();
+        nodeFragment.updatePeerCount(connectedPeersCount);
+        return connectedPeersCount;
+    }
 
-    private void startDownload() {
-        var hash = Objects.requireNonNull(hashInput.getText()).toString().trim();
-
+    private void startDownload(String hash) {
         this.swarmNode.download(hash);
     }
 
     @Override
     public void onNodeInfoChanged(NodeInfo nodeInfo) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                nodeStatusText.setText(nodeInfo.status().name());
-
-                walletAddressText.setText(nodeInfo.walletAddress());
-
-                if (NodeStatus.Running == nodeInfo.status()) {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
-                    startDownloadButton.setEnabled(true);
-                    hashInput.setEnabled(true);
-                } else {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
-                }
-            }
-        });
+        nodeFragment.updateNodeInfo(nodeInfo);
+        downloadFragment.updateNodeInfo(nodeInfo);
+        uploadFragment.updateNodeInfo(nodeInfo);
     }
 
     @Override
     public void onDownloadFinished(String filename, byte[] data) {
         runOnUiThread(() -> {
             pendingDownloadData = data;
-            pendingDownloadFilename = filename;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");

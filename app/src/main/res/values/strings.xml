@@ -8,21 +8,52 @@
     <string name="status">Status:</string>
 
     <string name="configuration">Configuration</string>
+    <string name="node_mode">Node Mode</string>
     <string name="password">Password</string>
     <string name="rpc_endpoint">RPC Endpoint</string>
     <string name="default_rpc_endpoint">https://xdai.fairdatasociety.org</string>
-    <string name="nat_address">NAT Address</string>
 
-    <string name="download">Download by Swarm Hash</string>
+    <string name="download">Download</string>
     <string name="hash_hint">Swarm Hash</string>
     <string name="download_button">Download</string>
 
-    <string name="wallet_info">Wallet Information\n</string>
+    <string name="blockchain_info">Blockchain Information\n</string>
+    <string name="wallet_address">Wallet Address\n</string>
+    <string name="chequebook_address">Chequebook Address\n</string>
+    <string name="chequebook_balance">Chequebook Balance\n</string>
 
 
     <string name="peers_info">Connected Peers: \n</string>
     <string name="no_peers">0</string>
 
+    <string name="node">Node Info</string>
+    <string name="upload">Upload</string>
+    <string name="upload_description">Select a file to upload to Swarm network</string>
+    <string name="select_file">Select File</string>
+    <string name="upload_button">Upload to Swarm</string>
+
+    <string name="stamp_management">Stamp Management</string>
+    <string name="select_stamp">Select Stamp</string>
+    <string name="selected_stamp">Selected Stamp</string>
+    <string name="create_stamp">Create Stamp</string>
+    <string name="stamp_amount">Amount</string>
+    <string name="stamp_depth">Depth</string>
+    <string name="stamp_label">Label</string>
+    <string name="stamp_immutable">Immutable</string>
+    <string name="stamp_details">Stamp details</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="select">Select</string>
+
+    <string name="uploads">Uploads</string>
+    <string name="upload_history">Upload History</string>
+    <string name="show_uploads">Show Uploads</string>
+    <string name="uploads_count">Uploaded Files: %d</string>
+    <string name="close">Close</string>
+    <string name="toggle_full_text">Copy to clipboard</string>
+    <string name="stampId">ID:</string>
+    <string name="hash">Hash:</string>
+    <string name="stamp_id">Stamp ID:</string>
 
     <string-array name="node_modes">
         <item>ultra light</item>
