@@ -228,6 +228,11 @@ public class SwarmNode {
         options.setUsePostageSnapshot(false);
         options.setMainnet(true);
         options.setNetworkID(1);
+        options.setCacheCapacity(32 * 1024 * 1024);
+        options.setDBOpenFilesLimit(50);
+        options.setDBWriteBufferSize(32 * 1024 * 1024);
+        options.setDBBlockCacheCapacity(32 * 1024 * 1024);
+        options.setDBDisableSeeksCompaction(false);
         options.setRetrievalCaching(true);
 
         return options;
