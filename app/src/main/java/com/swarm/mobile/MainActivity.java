@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     }
 
     @Override
-    public void onDownloadFinished(String filename, byte[] data) {
+    public void onDownloadSuccess(String filename, byte[] data) {
         runOnUiThread(() -> {
             pendingDownloadData = data;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
@@ -155,6 +155,17 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_TITLE, filename);
             createDocumentLauncher.launch(intent);
+        });
+    }
+
+    public void onHashNotFound(){
+        runOnUiThread(() -> {
+            var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Hash Not Found")
+                    .setMessage("The requested hash was not found in the Swarm network. Please check the hash and try again.")
+                    .setPositiveButton("OK", null)
+                    .create();
+            alertDialog.show();
         });
     }
 
