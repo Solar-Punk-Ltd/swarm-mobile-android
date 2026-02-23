@@ -64,16 +64,45 @@ The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 ### Android App
 - Material Design UI with card-based layout
 - Node information display (Node ID, Status)
-- Start/Stop controls for the Swarm node
+- Start/Stop controls for the Swarm node in [ultra-light or light mode](https://docs.ethswarm.org/docs/bee/installation/getting-started#choosing-a-node-type)
 - Real-time status updates
+- Download functionality using Swarm hash
+- List / Buy Stamps for upload
+- Simple file upload to Swarm with upload history
 
-## Usage
+## Usage - ultra-light mode
 1. Build the app using Gradle
 2. Install the APK on an Android device (API 21+)
 3. Launch the "Swarm Mobile" app
-4. Tap "Start Node" to start the Swarm node
-5. Enter swarm hash to download
+4. Select "Ultra-Light Mode"
+5. Tap "Start Node" to start the Swarm node
+6. Enter swarm hash to download
 
+## Usage - light mode
+1. Build the app using Gradle
+2. Install the APK on an Android device (API 21+)
+3. Launch the "Swarm Mobile" app
+4. Select "Light Mode"
+5. Fill required RPC Endpoint (e.g. https://xdai.fairdatasociety.org) 
+6. Tap "Start Node" to start the Swarm node
+7. After Wallet Address appears need to fund the wallet. Recommended to use this [app](https://fund.ethswarm.org/)
+8. Recommended minimal 0.1xDai for the node to be able to deploy a [Chequebook](https://docs.ethswarm.org/docs/bee/installation/quick-start#get-your-nodes-address) and a fex xBZZ for postage batches.
+9. Restart App
+10. After the node shows "Running" status and has connected peers then on the Upload tab Stamps should be bought for upload with the "Create" button.
+11. Select Stamp from the list
+12. Browse a file to upload and tap "Upload" button
+13. After upload completes the file hash will be shown in the upload history list
+
+## Possible improvements
+- Add in app lint to the fund app with prefilled address and amount
+- Hash quick share
+- Upload complete folder
+- Upload multiple selected files at once
+- Stamp estimated cost calculator before buy
+- Stamp estimated validity calculator before buy
+- Stamp remaining validity display
+- Availability of the uploaded content in the history list (based on the used stamp)
+- Stamp [Topup and Dilude](https://docs.ethswarm.org/docs/desktop/postage-stamps/#dilute-a-batch) functionality  
 
 ## Development
 The app is written in Java 17 and uses:

@@ -1,6 +1,12 @@
 package com.swarm.lib;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
+
+import com.swarm.interfaces.StampListener;
+import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.interfaces.UploadListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +15,7 @@ import java.util.logging.Logger;
 import mobile.Mobile;
 import mobile.MobileNode;
 import mobile.MobileNodeOptions;
+import mobile.StampData;
 
 public class SwarmNode {
     private NodeInfo nodeInfo;
@@ -17,36 +24,40 @@ public class SwarmNode {
     private final String dataDir;
     private final String password;
     private final String rpcEndpoint;
+    private final Boolean lightModeEnabled;
 
 
-    public SwarmNode(String dataDir, String password, String rpcEndpoint) {
+    public SwarmNode(String dataDir, String password, String rpcEndpoint, Boolean lightModeEnabled) {
         this.listeners = new ArrayList<>();
         this.dataDir = dataDir;
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
-        this.nodeInfo = new NodeInfo("", NodeStatus.Started);
+        this.lightModeEnabled = lightModeEnabled;
+        this.nodeInfo = new NodeInfo("", "", "", NodeStatus.Started);
     }
 
     public void addListener(SwarmNodeListener listener) {
         listeners.add(listener);
     }
 
+    @SuppressWarnings("unused")
     public void removeListener(SwarmNodeListener listener) {
         listeners.remove(listener);
     }
 
-    public void updateNodeInfo(String walletAddress, NodeStatus nodeStatus) {
-        this.nodeInfo = new NodeInfo(walletAddress, nodeStatus);
+    public void updateNodeInfo(String walletAddress, String chequebookAddress, String chequebookBalance, NodeStatus nodeStatus) {
+        this.nodeInfo = new NodeInfo(walletAddress, chequebookAddress, chequebookBalance, nodeStatus);
         notifyNodeInfoChanged();
     }
 
     public void start() {
-        updateNodeInfo(nodeInfo.walletAddress(), NodeStatus.Started);
+        updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Started);
         try {
             this.mobileNode = connect();
-            updateNodeInfo(mobileNode.walletAddress(), NodeStatus.Running);
+            var blockchainData = mobileNode.blockchainData();
+            updateNodeInfo(blockchainData.getWalletAddress(), blockchainData.getChequebookAddress(), blockchainData.getChequebookBalance(), NodeStatus.Running);
         } catch (Exception e) {
-            updateNodeInfo(nodeInfo.walletAddress(), NodeStatus.Stopped);
+            updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Stopped);
             throw new RuntimeException(e);
         }
     }
@@ -82,26 +93,125 @@ public class SwarmNode {
         return 0;
     }
 
-    public void download(String hash) {
-        if (isRunning()) {
-            try {
-                var file = mobileNode.download(hash);
+    public void getAllStamps(StampListener listener) {
 
-                if (file == null) {
-                    Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
+        if (mobileNode == null) {
+            throw new RuntimeException("Bee is not initialized");
+        }
+
+        if (isRunning()) {
+            new Thread(() ->
+            {
+                mobileNode.fetchStamps();
+                var count = mobileNode.getStampCount();
+                if (count == 0) {
+                    Log.i("SwarmNode", "No stamps found");
                     return;
                 }
 
-                for (SwarmNodeListener listener : listeners) {
-                    listener.onDownloadFinished(file.getName(), file.getData());
+                Log.i("SwarmNode", "Total stamps: " + count);
+
+                var list = new ArrayList<Stamp>();
+                for (int i = 0; i < count; i++) {
+                    var stampData = mobileNode.getStamp(i);
+                    Log.i("SwarmNode", "Stamp " + i + ": " + stampData.getLabel() + ", batchID: " + stampData.getBatchIdHex());
+                    list.add(convertStampDataToStamp(stampData));
                 }
 
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+                listener.stampsReceived(list);
+            }).start();
+        }
+
+    }
+
+    private static Stamp convertStampDataToStamp(StampData stampData) {
+        return new Stamp(
+                stampData.getLabel(),
+                stampData.getBatchIdHex(),
+                stampData.getBatchAmount(),
+                stampData.getBatchDepth(),
+                stampData.getBucketDepth(),
+                stampData.getImmutableFlag()
+        );
+    }
+
+    public void buyStamp(String amount, String depth, String label, boolean immutable, StampListener listener) {
+        if (isRunning()) {
+            new Thread(() -> {
+                try {
+                    var hash = mobileNode.buyStamp(amount, depth, label, immutable);
+                    listener.stampCreated(hash);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+            }).start();
         }
     }
 
+    public void download(String hash) {
+        if (isRunning()) {
+            new Thread(() -> {
+                try {
+                    var file = mobileNode.download(hash);
+
+                    if (file == null) {
+                        Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
+                        notifyHashNotFound();
+                        return;
+                    }
+
+                    notifyDownloadSuccess(file.getName(), file.getData());
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }
+    }
+
+    private void notifyHashNotFound() {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onHashNotFound();
+        }
+    }
+
+    private void notifyDownloadSuccess(String fileName, byte[] data) {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onDownloadSuccess(fileName, data);
+        }
+    }
+
+    public void upload(byte[] content, String filename, String contentType, Stamp stamp,
+                       UploadListener uploadListener
+    ) {
+        if (isRunning()) {
+            new Thread(() -> {
+                try {
+                    var hash = mobileNode.upload(stamp.batchID(),
+                            filename,
+                            contentType,
+                            false,
+                            "",
+                            false,
+                            Byte.parseByte("0"),
+                            content);
+
+                    if (hash == null || hash.getReferenceHex().isEmpty()) {
+                        Logger.getLogger(this.getClass().getName()).info("Upload failed: hash is null or empty for file " + filename);
+                        uploadListener.onUploadFailed("Upload failed: hash is null or empty");
+                        return;
+                    }
+
+                    uploadListener.onUploadSuccessful(hash.getReferenceHex());
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).info("Unexpected error during upload: " + e.getMessage());
+                    uploadListener.onUploadFailed("Unexpected error during upload: " + e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }
+    }
 
     @NonNull
     private MobileNodeOptions getLiteOptions() {
@@ -115,11 +225,16 @@ public class SwarmNode {
         options.setBlockchainRpcEndpoint(rpcEndpoint);
         options.setSwapInitialDeposit("0");
         options.setPaymentThreshold("100000000");
-        options.setSwapEnable(false);
-        options.setChequebookEnable(true);
+        options.setSwapEnable(lightModeEnabled);
+        options.setChequebookEnable(lightModeEnabled);
         options.setUsePostageSnapshot(false);
         options.setMainnet(true);
         options.setNetworkID(1);
+        options.setCacheCapacity(32 * 1024 * 1024);
+        options.setDBOpenFilesLimit(50);
+        options.setDBWriteBufferSize(32 * 1024 * 1024);
+        options.setDBBlockCacheCapacity(32 * 1024 * 1024);
+        options.setDBDisableSeeksCompaction(false);
         options.setRetrievalCaching(true);
 
         return options;

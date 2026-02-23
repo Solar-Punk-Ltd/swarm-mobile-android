@@ -3,21 +3,32 @@ package com.swarm.mobile;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.IBinder;
 import android.os.Looper;
-import android.view.View;
-import android.widget.TextView;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.swarm.lib.NodeInfo;
+import com.swarm.lib.SwarmNode;
+import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.mobile.fragments.DownloadFragment;
+import com.swarm.mobile.fragments.NodeFragment;
+import com.swarm.mobile.fragments.UploadFragment;
+
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
 import com.swarm.lib.SwarmNodeListener;
@@ -26,24 +37,23 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
 
+
     private SwarmNodeService swarmNodeService;
     private boolean serviceBound = false;
-    private TextView walletAddressText;
-    private TextView nodeStatusText;
-    private TextView peerCountText;
-    private MaterialButton startDownloadButton;
-    private MaterialButton stopNodeButton;
-    private TextInputEditText hashInput;
 
     private Handler refreshHandler;
 
     private byte[] pendingDownloadData;
-    private String pendingDownloadFilename;
 
     private ActivityResultLauncher<Intent> createDocumentLauncher;
 
     private String password;
     private String rpcEndpoint;
+    private String nodeMode;
+
+    private NodeFragment nodeFragment;
+    private DownloadFragment downloadFragment;
+    private UploadFragment uploadFragment;
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -64,61 +74,74 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
         if (intent != null) {
             password = intent.getStringExtra(IntentKeys.PASSWORD);
             rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
+            nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
-        walletAddressText = findViewById(R.id.walletAddressText);
-        nodeStatusText = findViewById(R.id.statusText);
-        startDownloadButton = findViewById(R.id.downloadByHashButton);
-        stopNodeButton = findViewById(R.id.stopNodeButton);
-        hashInput = findViewById(R.id.hashInput);
+//        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
+//        swarmNode.addListener(this);
 
-        peerCountText = findViewById(R.id.peersListText);
-
-        // Prepare service intent
         Intent serviceIntent = new Intent(this, SwarmNodeService.class);
         serviceIntent.putExtra(IntentKeys.DATA_DIR, getApplicationContext().getFilesDir().getAbsolutePath());
         serviceIntent.putExtra(IntentKeys.PASSWORD, password);
         serviceIntent.putExtra(IntentKeys.RPC_ENDPOINT, rpcEndpoint);
 
         if (!isServiceRunning(SwarmNodeService.class)) {
-            // Use startForegroundService on Android 8+ (API 26+)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent);
-            } else {
-                startService(serviceIntent);
-            }
+            startForegroundService(serviceIntent);
         }
 
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-        startDownloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startDownload();
+
+        nodeFragment = new NodeFragment();
+        downloadFragment = new DownloadFragment();
+        uploadFragment = new UploadFragment(swarmNode);
+
+        downloadFragment.setDownloadListener(this::startDownload);
+
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottom_navigation);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.navigation_node) {
+                selectedFragment = nodeFragment;
+            } else if (itemId == R.id.navigation_download) {
+                selectedFragment = downloadFragment;
+            } else if (itemId == R.id.navigation_upload) {
+                selectedFragment = uploadFragment;
             }
+
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+                return true;
+            }
+            return false;
         });
 
-        stopNodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopNode();
-                navigateToConfig();
-            }
-        });
+        loadFragment(nodeFragment);
+        bottomNavigation.setSelectedItemId(R.id.navigation_node);
+
+        if (NodeMode.ULTRA_LIGHT.name().equals(nodeMode)) {
+            bottomNavigation.getMenu().findItem(R.id.navigation_upload).setVisible(false);
+        }
+
+
+        new Thread(() -> swarmNode.start()).start();
 
         refreshHandler = new Handler(Looper.getMainLooper());
         Runnable refreshRunnable = new Runnable() {
             @Override
             public void run() {
-                var connectedPeers = updatePeerCount();
-                var delayMillis = connectedPeers < 100 ? 1000 : 5000;
-                refreshHandler.postDelayed(this, delayMillis);
+                var connectedPeersCount = updatePeerCount();
+                var delayInMillis = connectedPeersCount > 100 ? 5000 : 1000;
+                refreshHandler.postDelayed(this, delayInMillis);
             }
         };
         refreshHandler.post(refreshRunnable);
@@ -135,27 +158,26 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
                                 outputStream.close();
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e("MainActivity", "Error saving downloaded file", e);
                         } finally {
                             pendingDownloadData = null;
-                            pendingDownloadFilename = null;
                         }
                     }
                 }
         );
     }
 
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.commit();
+    }
+
     @SuppressLint("SetTextI18n")
     private long updatePeerCount() {
-        if (serviceBound && swarmNodeService != null) {
-            var connectedPeers = swarmNodeService.getConnectedPeers();
-
-            peerCountText.setText("" + connectedPeers);
-
-            return connectedPeers;
-        }
-
-        return 0;
+        var connectedPeersCount = this.swarmNode.getConnectedPeers();
+        nodeFragment.updatePeerCount(connectedPeersCount);
+        return connectedPeersCount;
     }
 
     private boolean isServiceRunning(Class<?> serviceClass) {
@@ -170,64 +192,39 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         return false;
     }
 
-
-    private void startDownload() {
-        var hash = Objects.requireNonNull(hashInput.getText()).toString().trim();
-
+    private void startDownload(String hash) {
         if (serviceBound && swarmNodeService != null) {
             swarmNodeService.download(hash);
         }
     }
 
-    private void stopNode() {
-        if (serviceBound && swarmNodeService != null) {
-            swarmNodeService.removeListener(this);
-            unbindService(serviceConnection);
-            serviceBound = false;
-        }
-
-        Intent serviceIntent = new Intent(this, SwarmNodeService.class);
-        stopService(serviceIntent);
-
-    }
-
-    private void navigateToConfig() {
-        Intent intent = new Intent(this, ConfigActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
-    }
-
     @Override
     public void onNodeInfoChanged(NodeInfo nodeInfo) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                nodeStatusText.setText(nodeInfo.status().name());
-
-                walletAddressText.setText(nodeInfo.walletAddress());
-
-                if (NodeStatus.Running == nodeInfo.status()) {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
-                    startDownloadButton.setEnabled(true);
-                    hashInput.setEnabled(true);
-                } else {
-                    nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
-                }
-            }
-        });
+        nodeFragment.updateNodeInfo(nodeInfo);
+        downloadFragment.updateNodeInfo(nodeInfo);
+        uploadFragment.updateNodeInfo(nodeInfo);
     }
 
     @Override
-    public void onDownloadFinished(String filename, byte[] data) {
+    public void onDownloadSuccess(String filename, byte[] data) {
         runOnUiThread(() -> {
             pendingDownloadData = data;
-            pendingDownloadFilename = filename;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_TITLE, filename);
             createDocumentLauncher.launch(intent);
+        });
+    }
+
+    public void onHashNotFound(){
+        runOnUiThread(() -> {
+            var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Hash Not Found")
+                    .setMessage("The requested hash was not found in the Swarm network. Please check the hash and try again.")
+                    .setPositiveButton("OK", null)
+                    .create();
+            alertDialog.show();
         });
     }
 
