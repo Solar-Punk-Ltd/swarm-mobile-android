@@ -114,16 +114,25 @@ public class SwarmNodeService extends Service {
     }
 
     public void buyStamp(String amount, String depth, String label, boolean immutable, StampListener listener) {
+        Log.i(TAG, "buyStamp() called: amount=" + amount + ", depth=" + depth
+                + ", label=" + label + ", immutable=" + immutable);
         if (swarmNode != null) {
             swarmNode.buyStamp(amount, depth, label, immutable, listener);
+        } else {
+            Log.w(TAG, "buyStamp() called but swarmNode is null");
         }
     }
 
     public void upload(byte[] content, String filename, String contentType, Stamp stamp,
                        UploadListener uploadListener
     ) {
+        Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType
+                + ", size=" + (content != null ? content.length : 0) + " bytes"
+                + ", stamp=" + (stamp != null ? stamp.toString() : "null"));
         if (swarmNode != null) {
             swarmNode.upload(content, filename, contentType, stamp, uploadListener);
+        } else {
+            Log.w(TAG, "upload() called but swarmNode is null");
         }
     }
 
