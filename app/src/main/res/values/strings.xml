@@ -12,7 +12,7 @@
     <string name="node_mode">Node Mode</string>
     <string name="password">Password</string>
     <string name="rpc_endpoint">RPC Endpoint</string>
-    <string name="default_rpc_endpoint">https://xdai.fairdatasociety.org</string>
+    <string name="default_rpc_endpoint">https://gnosis-mainnet.g.alchemy.com/v2/atcICv4EFi9hXKew1D4LvnH36cm5-96S</string>
 
     <string name="download">Download</string>
     <string name="hash_hint">Swarm Hash</string>
@@ -52,6 +52,7 @@
     <string name="uploads_count">Uploaded Files: %d</string>
     <string name="close">Close</string>
     <string name="toggle_full_text">Copy to clipboard</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="stampId">ID:</string>
     <string name="hash">Hash:</string>
     <string name="stamp_id">Stamp ID:</string>

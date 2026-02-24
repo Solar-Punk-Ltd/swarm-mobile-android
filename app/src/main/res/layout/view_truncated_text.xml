@@ -22,8 +22,8 @@
         android:layout_height="32dp"
         android:layout_marginStart="8dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_menu_view"
-        android:contentDescription="@string/toggle_full_text"
+        android:src="@drawable/ic_content_copy"
+        android:contentDescription="@string/copy_to_clipboard"
         android:scaleType="fitCenter"
         android:padding="4dp" />
 

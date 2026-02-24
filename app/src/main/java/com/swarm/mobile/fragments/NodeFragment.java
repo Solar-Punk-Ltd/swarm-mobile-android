@@ -13,11 +13,14 @@ import androidx.fragment.app.Fragment;
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
 import com.swarm.mobile.R;
+import com.swarm.mobile.utils.NumberUtils;
+import com.swarm.mobile.views.TruncatedTextView;
+
 
 public class NodeFragment extends Fragment {
 
-    private TextView walletAddressData;
-    private TextView chequebookAddressData;
+    private TruncatedTextView walletAddressData;
+    private TruncatedTextView chequebookAddressData;
     private TextView chequebookBalanceData;
     private TextView nodeStatusText;
     private TextView peerCountText;
@@ -36,6 +39,9 @@ public class NodeFragment extends Fragment {
         chequebookBalanceData = view.findViewById(R.id.chequebookBalanceData);
         nodeStatusText = view.findViewById(R.id.statusText);
         peerCountText = view.findViewById(R.id.peersListText);
+
+        walletAddressData.setMaxLength(16);
+        chequebookAddressData.setMaxLength(16);
 
         if (latestNodeInfo != null) {
             updateNodeInfo(latestNodeInfo);
@@ -57,7 +63,6 @@ public class NodeFragment extends Fragment {
         getActivity().runOnUiThread(() -> {
             peerCountText.setText(String.valueOf(lastPeerCount));
         });
-
     }
 
     public void updateNodeInfo(NodeInfo nodeInfo) {
@@ -69,7 +74,7 @@ public class NodeFragment extends Fragment {
         getActivity().runOnUiThread(() -> {
             walletAddressData.setText(latestNodeInfo.walletAddress());
             chequebookAddressData.setText(latestNodeInfo.chequebookAddress());
-            chequebookBalanceData.setText(String.valueOf(latestNodeInfo.chequebookBalance()));
+            chequebookBalanceData.setText(NumberUtils.formatXBzz(latestNodeInfo.chequebookBalance()));
             nodeStatusText.setText(nodeInfo.status().name());
 
             if (NodeStatus.Running == nodeInfo.status()) {
@@ -80,4 +85,9 @@ public class NodeFragment extends Fragment {
         });
     }
 
+
+
 }
+
+
+
