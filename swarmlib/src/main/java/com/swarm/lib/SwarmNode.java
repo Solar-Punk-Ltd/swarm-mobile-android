@@ -51,7 +51,6 @@ public class SwarmNode {
     }
 
     public void start() {
-        updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Started);
         try {
             this.mobileNode = connect();
             var blockchainData = mobileNode.blockchainData();
@@ -66,7 +65,7 @@ public class SwarmNode {
         this.listeners.clear();
         this.mobileNode.shutdown();
         this.mobileNode = null;
-        updateNodeInfo("", NodeStatus.Stopped);
+        updateNodeInfo("", "", "", NodeStatus.Stopped);
         notifyNodeInfoChanged();
     }
 

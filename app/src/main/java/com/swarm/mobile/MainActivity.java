@@ -3,14 +3,10 @@ package com.swarm.mobile;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
@@ -22,21 +18,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.swarm.lib.NodeInfo;
-import com.swarm.lib.SwarmNode;
 import com.swarm.interfaces.SwarmNodeListener;
+import com.swarm.lib.NodeInfo;
+import com.swarm.lib.NodeStatus;
 import com.swarm.mobile.fragments.DownloadFragment;
 import com.swarm.mobile.fragments.NodeFragment;
 import com.swarm.mobile.fragments.UploadFragment;
 
-import com.swarm.lib.NodeInfo;
-import com.swarm.lib.NodeStatus;
-import com.swarm.lib.SwarmNodeListener;
-
-import java.util.Objects;
-
 public class MainActivity extends AppCompatActivity implements SwarmNodeListener {
-
 
     private SwarmNodeService swarmNodeService;
     private boolean serviceBound = false;
@@ -55,13 +44,15 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     private DownloadFragment downloadFragment;
     private UploadFragment uploadFragment;
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             SwarmNodeService.SwarmNodeBinder binder = (SwarmNodeService.SwarmNodeBinder) service;
             swarmNodeService = binder.getService();
             serviceBound = true;
             swarmNodeService.addListener(MainActivity.this);
+            uploadFragment.setSwarmNodeService(swarmNodeService);
+            onNodeInfoChanged(new NodeInfo("", "", "", NodeStatus.Started));
         }
 
         @Override
@@ -84,13 +75,11 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
 
-//        swarmNode = new SwarmNode(getApplicationContext().getFilesDir().getAbsolutePath(), password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
-//        swarmNode.addListener(this);
-
         Intent serviceIntent = new Intent(this, SwarmNodeService.class);
         serviceIntent.putExtra(IntentKeys.DATA_DIR, getApplicationContext().getFilesDir().getAbsolutePath());
         serviceIntent.putExtra(IntentKeys.PASSWORD, password);
         serviceIntent.putExtra(IntentKeys.RPC_ENDPOINT, rpcEndpoint);
+        serviceIntent.putExtra(IntentKeys.NODE_MODE, nodeMode);
 
         if (!isServiceRunning(SwarmNodeService.class)) {
             startForegroundService(serviceIntent);
@@ -98,10 +87,15 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
+        // TODO Try this later
+        // startForegroundService is safe to call even if the service is already running —
+        // onStartCommand returns START_STICKY and guards against double-init with a null check.
+        // startForegroundService(serviceIntent);
+        // bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         nodeFragment = new NodeFragment();
         downloadFragment = new DownloadFragment();
-        uploadFragment = new UploadFragment(swarmNode);
+        uploadFragment = new UploadFragment();
 
         downloadFragment.setDownloadListener(this::startDownload);
 
@@ -132,9 +126,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             bottomNavigation.getMenu().findItem(R.id.navigation_upload).setVisible(false);
         }
 
-
-        new Thread(() -> swarmNode.start()).start();
-
         refreshHandler = new Handler(Looper.getMainLooper());
         Runnable refreshRunnable = new Runnable() {
             @Override
@@ -146,25 +137,22 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         };
         refreshHandler.post(refreshRunnable);
 
-        createDocumentLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
-                        try {
-                            var uri = result.getData().getData();
-                            var outputStream = getContentResolver().openOutputStream(uri);
-                            if (outputStream != null && pendingDownloadData != null) {
-                                outputStream.write(pendingDownloadData);
-                                outputStream.close();
-                            }
-                        } catch (Exception e) {
-                            Log.e("MainActivity", "Error saving downloaded file", e);
-                        } finally {
-                            pendingDownloadData = null;
-                        }
+        createDocumentLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                try {
+                    var uri = result.getData().getData();
+                    var outputStream = getContentResolver().openOutputStream(uri);
+                    if (outputStream != null && pendingDownloadData != null) {
+                        outputStream.write(pendingDownloadData);
+                        outputStream.close();
                     }
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Error saving downloaded file", e);
+                } finally {
+                    pendingDownloadData = null;
                 }
-        );
+            }
+        });
     }
 
     private void loadFragment(Fragment fragment) {
@@ -175,7 +163,11 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     @SuppressLint("SetTextI18n")
     private long updatePeerCount() {
-        var connectedPeersCount = this.swarmNode.getConnectedPeers();
+        if (swarmNodeService == null) {
+            return 0;
+        }
+
+        var connectedPeersCount = this.swarmNodeService.getConnectedPeers();
         nodeFragment.updatePeerCount(connectedPeersCount);
         return connectedPeersCount;
     }
@@ -217,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         });
     }
 
-    public void onHashNotFound(){
+    public void onHashNotFound() {
         runOnUiThread(() -> {
             var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Hash Not Found")
