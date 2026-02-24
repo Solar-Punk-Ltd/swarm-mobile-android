@@ -81,17 +81,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         serviceIntent.putExtra(IntentKeys.RPC_ENDPOINT, rpcEndpoint);
         serviceIntent.putExtra(IntentKeys.NODE_MODE, nodeMode);
 
-        if (!isServiceRunning(SwarmNodeService.class)) {
-            startForegroundService(serviceIntent);
-        }
-
-        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        // TODO Try this later
         // startForegroundService is safe to call even if the service is already running —
         // onStartCommand returns START_STICKY and guards against double-init with a null check.
-        // startForegroundService(serviceIntent);
-        // bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        startForegroundService(serviceIntent);
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         nodeFragment = new NodeFragment();
         downloadFragment = new DownloadFragment();
@@ -172,17 +165,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         return connectedPeersCount;
     }
 
-    private boolean isServiceRunning(Class<?> serviceClass) {
-        android.app.ActivityManager manager = (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        if (manager != null) {
-            for (android.app.ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-                if (serviceClass.getName().equals(service.service.getClassName())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     private void startDownload(String hash) {
         if (serviceBound && swarmNodeService != null) {
