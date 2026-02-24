@@ -6,7 +6,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -123,14 +125,14 @@ public class SwarmNodeService extends Service {
         }
     }
 
-    public void upload(byte[] content, String filename, String contentType, Stamp stamp,
+    public void upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
                        UploadListener uploadListener
     ) {
         Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType
-                + ", size=" + (content != null ? content.length : 0) + " bytes"
+                + ", uri=" + (fileUri != null ? fileUri.toString() : "null")
                 + ", stamp=" + (stamp != null ? stamp.toString() : "null"));
         if (swarmNode != null) {
-            swarmNode.upload(content, filename, contentType, stamp, uploadListener);
+            swarmNode.upload(fileUri, contentResolver, filename, contentType, stamp, uploadListener);
         } else {
             Log.w(TAG, "upload() called but swarmNode is null");
         }

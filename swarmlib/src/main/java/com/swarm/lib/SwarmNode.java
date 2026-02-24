@@ -1,5 +1,7 @@
 package com.swarm.lib;
 
+import android.content.ContentResolver;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -8,6 +10,10 @@ import com.swarm.interfaces.StampListener;
 import com.swarm.interfaces.SwarmNodeListener;
 import com.swarm.interfaces.UploadListener;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -181,11 +187,28 @@ public class SwarmNode {
         }
     }
 
-    public void upload(byte[] content, String filename, String contentType, Stamp stamp,
+    public void upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
                        UploadListener uploadListener
     ) {
         if (isRunning()) {
             new Thread(() -> {
+                byte[] content;
+                try (InputStream raw = contentResolver.openInputStream(fileUri);
+                     BufferedInputStream bis = new BufferedInputStream(raw != null ? raw : InputStream.nullInputStream());
+                     ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+
+                    byte[] chunk = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = bis.read(chunk, 0, chunk.length)) != -1) {
+                        buffer.write(chunk, 0, bytesRead);
+                    }
+                    content = buffer.toByteArray();
+                } catch (IOException e) {
+                    Logger.getLogger(this.getClass().getName()).severe("Failed to read file for upload: " + e.getMessage());
+                    uploadListener.onUploadFailed("Failed to read file: " + e.getMessage());
+                    return;
+                }
+
                 try {
                     var hash = mobileNode.upload(stamp.batchID(),
                             filename,
