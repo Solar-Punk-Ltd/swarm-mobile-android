@@ -62,10 +62,10 @@ public class SwarmNode {
     }
 
     public void stopNode() throws Exception {
+        updateNodeInfo("", "", "", NodeStatus.Stopped);
         this.listeners.clear();
         this.mobileNode.shutdown();
         this.mobileNode = null;
-        updateNodeInfo("", "", "", NodeStatus.Stopped);
         notifyNodeInfoChanged();
     }
 

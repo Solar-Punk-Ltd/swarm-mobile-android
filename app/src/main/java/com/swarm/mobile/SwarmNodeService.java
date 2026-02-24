@@ -96,7 +96,7 @@ public class SwarmNodeService extends Service {
     public void onDestroy() {
         Log.i(TAG, "Stopping SwarmNodeService");
         super.onDestroy();
-        if (swarmNode != null && swarmNode.isRunning()) {
+        if (swarmNode != null) {
             try {
                 swarmNode.stopNode();
                 Log.i(TAG, "SwarmNode stopped successfully");

@@ -68,6 +68,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
         setContentView(R.layout.activity_main);
 
+        nodeFragment = new NodeFragment();
+        downloadFragment = new DownloadFragment();
+        uploadFragment = new UploadFragment();
+
         Intent intent = getIntent();
         if (intent != null) {
             password = intent.getStringExtra(IntentKeys.PASSWORD);
@@ -85,10 +89,6 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         // onStartCommand returns START_STICKY and guards against double-init with a null check.
         startForegroundService(serviceIntent);
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        nodeFragment = new NodeFragment();
-        downloadFragment = new DownloadFragment();
-        uploadFragment = new UploadFragment();
 
         downloadFragment.setDownloadListener(this::startDownload);
 
