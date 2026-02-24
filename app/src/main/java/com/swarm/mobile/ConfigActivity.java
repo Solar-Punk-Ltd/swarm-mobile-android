@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
@@ -15,13 +14,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.Objects;
+
 public class ConfigActivity extends AppCompatActivity {
 
     private AutoCompleteTextView nodeModeSpinner;
     private TextInputEditText passwordInput;
     private TextInputEditText rpcEndpointInput;
     private TextInputLayout rpcEndpointLayout;
-    private MaterialButton startButton;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -33,7 +33,7 @@ public class ConfigActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInput);
         rpcEndpointInput = findViewById(R.id.rpcEndpointInput);
         rpcEndpointLayout = findViewById(R.id.rpcEndpointLayout);
-        startButton = findViewById(R.id.startButton);
+        MaterialButton startButton = findViewById(R.id.startButton);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, NodeMode.getDisplayNames());
@@ -47,9 +47,11 @@ public class ConfigActivity extends AppCompatActivity {
         var savedPassword = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("password", "");
         passwordInput.setText(savedPassword);
 
+
         nodeModeSpinner.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -57,8 +59,10 @@ public class ConfigActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
+
 
         updateRpcEndpointVisibility(savedNodeModeName);
 
@@ -89,9 +93,9 @@ public class ConfigActivity extends AppCompatActivity {
         String selectedModeName = nodeModeSpinner.getText().toString();
         NodeMode nodeMode = NodeMode.fromDisplayName(selectedModeName);
 
-        String password = passwordInput.getText().toString();
+        String password = Objects.requireNonNull(passwordInput.getText()).toString();
 
-        String rpcEndpoint = (nodeMode == NodeMode.ULTRA_LIGHT) ? "" : rpcEndpointInput.getText().toString().trim();
+        String rpcEndpoint = (nodeMode == NodeMode.ULTRA_LIGHT) ? "" : Objects.requireNonNull(rpcEndpointInput.getText()).toString().trim();
 
         getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .edit()

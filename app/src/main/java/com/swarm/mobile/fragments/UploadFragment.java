@@ -18,8 +18,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.InputStream;
-
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -29,15 +27,16 @@ import com.swarm.interfaces.UploadListener;
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
 import com.swarm.lib.Stamp;
-import com.swarm.lib.SwarmNode;
 import com.swarm.mobile.R;
 import com.swarm.mobile.StampAdapter;
+import com.swarm.mobile.SwarmNodeService;
 import com.swarm.mobile.UploadRecord;
 import com.swarm.mobile.UploadRecordAdapter;
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
 import com.swarm.mobile.views.TruncatedTextView;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +47,6 @@ public class UploadFragment extends Fragment implements StampListener,
 
     private MaterialButton uploadButton;
     private MaterialButton createStampButton;
-    private MaterialButton showUploadsButton;
 
     private MaterialCardView selectedStampCard;
     private TextView selectedStampLabel;
@@ -67,10 +65,13 @@ public class UploadFragment extends Fragment implements StampListener,
     private final List<UploadRecord> uploadHistory = new ArrayList<>();
     private UploadHistoryStorage uploadHistoryStorage;
 
-    private final SwarmNode swarmNode;
+    private SwarmNodeService swarmNodeService;
 
-    public UploadFragment(SwarmNode swarmNode) {
-        this.swarmNode = swarmNode;
+    public UploadFragment() {
+    }
+
+    public void setSwarmNodeService(SwarmNodeService swarmNodeService) {
+        this.swarmNodeService = swarmNodeService;
     }
 
     @Override
@@ -110,7 +111,7 @@ public class UploadFragment extends Fragment implements StampListener,
 
         uploadButton = view.findViewById(R.id.uploadButton);
         createStampButton = view.findViewById(R.id.createStampButton);
-        showUploadsButton = view.findViewById(R.id.showUploadsButton);
+        MaterialButton showUploadsButton = view.findViewById(R.id.showUploadsButton);
 
         selectedStampCard = view.findViewById(R.id.selectedStampCard);
         selectedStampLabel = view.findViewById(R.id.selectedStampLabel);
@@ -125,7 +126,8 @@ public class UploadFragment extends Fragment implements StampListener,
         });
 
         uploadButton.setOnClickListener(v -> {
-            swarmNode.upload(selectedFileData, selectedFileName, selectedFileMimeType, selectedStamp, this);
+            if (swarmNodeService == null) return;
+            swarmNodeService.upload(selectedFileData, selectedFileName, selectedFileMimeType, selectedStamp, this);
         });
 
         selectStampButton.setOnClickListener(v -> this.getAllStamps());
@@ -203,7 +205,8 @@ public class UploadFragment extends Fragment implements StampListener,
             }
 
             try {
-                swarmNode.buyStamp(amountStr, depthStr, label, immutable, this);
+                if (swarmNodeService == null) return;
+                swarmNodeService.buyStamp(amountStr, depthStr, label, immutable, this);
                 Toast.makeText(getContext(),
                         "Creating stamp: amount=" + amountStr + ", depth=" + depthStr +
                                 ", label=" + label + ", immutable=" + immutable,
@@ -232,7 +235,8 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void getAllStamps() {
-        this.swarmNode.getAllStamps(this);
+        if (swarmNodeService == null) return;
+        this.swarmNodeService.getAllStamps(this);
     }
 
     public void stampCreated(String hash) {
@@ -314,6 +318,7 @@ public class UploadFragment extends Fragment implements StampListener,
             });
         }
     }
+
     @Override
     public void onUploadFailed(String error) {
         if (getActivity() != null) {

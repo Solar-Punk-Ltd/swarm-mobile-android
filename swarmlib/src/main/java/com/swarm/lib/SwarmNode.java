@@ -51,7 +51,6 @@ public class SwarmNode {
     }
 
     public void start() {
-        updateNodeInfo(nodeInfo.walletAddress(), nodeInfo.chequebookAddress(), nodeInfo.chequebookBalance(), NodeStatus.Started);
         try {
             this.mobileNode = connect();
             var blockchainData = mobileNode.blockchainData();
@@ -62,9 +61,11 @@ public class SwarmNode {
         }
     }
 
-    public void stop() {
-        this.mobileNode = null; // TODO implement explicit stop method in Go code
+    public void stopNode() throws Exception {
         updateNodeInfo("", "", "", NodeStatus.Stopped);
+        this.listeners.clear();
+        this.mobileNode.shutdown();
+        this.mobileNode = null;
         notifyNodeInfoChanged();
     }
 
@@ -245,6 +246,8 @@ public class SwarmNode {
         try {
             node = Mobile.startNode(options, password, "3");
         } catch (Exception e) {
+            this.listeners.clear();
+            this.mobileNode = null;
             throw new RuntimeException(e);
         }
 
