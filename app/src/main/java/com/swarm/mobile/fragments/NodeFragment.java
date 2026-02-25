@@ -1,5 +1,6 @@
 package com.swarm.mobile.fragments;
 
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,10 +9,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
+import com.swarm.mobile.NodeMode;
 import com.swarm.mobile.R;
 import com.swarm.mobile.utils.NumberUtils;
 import com.swarm.mobile.views.TruncatedTextView;
@@ -24,10 +27,17 @@ public class NodeFragment extends Fragment {
     private TextView chequebookBalanceData;
     private TextView nodeStatusText;
     private TextView peerCountText;
+    private View chequebookSection;
 
     private NodeInfo latestNodeInfo;
 
     private long lastPeerCount = 0;
+
+    private final NodeMode nodeMode;
+
+    public NodeFragment(NodeMode nodeMode) {
+        this.nodeMode = nodeMode;
+    }
 
     @Nullable
     @Override
@@ -37,6 +47,7 @@ public class NodeFragment extends Fragment {
         walletAddressData = view.findViewById(R.id.walletAddressData);
         chequebookAddressData = view.findViewById(R.id.chequebookAddressData);
         chequebookBalanceData = view.findViewById(R.id.chequebookBalanceData);
+        chequebookSection = view.findViewById(R.id.chequebookSection);
         nodeStatusText = view.findViewById(R.id.statusText);
         peerCountText = view.findViewById(R.id.peersListText);
 
@@ -60,9 +71,7 @@ public class NodeFragment extends Fragment {
             return;
         }
 
-        getActivity().runOnUiThread(() -> {
-            peerCountText.setText(String.valueOf(lastPeerCount));
-        });
+        getActivity().runOnUiThread(() -> peerCountText.setText(String.valueOf(lastPeerCount)));
     }
 
     public void updateNodeInfo(NodeInfo nodeInfo) {
@@ -75,12 +84,26 @@ public class NodeFragment extends Fragment {
             walletAddressData.setText(latestNodeInfo.walletAddress());
             chequebookAddressData.setText(latestNodeInfo.chequebookAddress());
             chequebookBalanceData.setText(NumberUtils.formatXBzz(latestNodeInfo.chequebookBalance()));
-            nodeStatusText.setText(nodeInfo.status().name());
 
-            if (NodeStatus.Running == nodeInfo.status()) {
-                nodeStatusText.setTextColor(getResources().getColor(R.color.status_running));
-            } else {
-                nodeStatusText.setTextColor(getResources().getColor(R.color.status_stopped));
+            chequebookSection.setVisibility(nodeMode == NodeMode.LIGHT ? View.VISIBLE : View.GONE);
+
+            boolean running = NodeStatus.Running == nodeInfo.status();
+            int statusColor = ContextCompat.getColor(requireContext(),
+                    running ? R.color.status_running : R.color.status_stopped);
+
+            nodeStatusText.setText(nodeInfo.status().name());
+            nodeStatusText.setTextColor(statusColor);
+
+            // Tint the pill border/background to match status
+            android.graphics.drawable.Drawable pillDrawable = ContextCompat
+                    .getDrawable(requireContext(), R.drawable.status_pill_background);
+            if (pillDrawable != null) {
+                GradientDrawable pill = (GradientDrawable) pillDrawable.mutate();
+                int fillAlpha = 0x1A; // ~10%
+                int fillColor = (fillAlpha << 24) | (statusColor & 0x00FFFFFF);
+                pill.setColor(fillColor);
+                pill.setStroke(2, statusColor);
+                nodeStatusText.setBackground(pill);
             }
         });
     }
@@ -88,6 +111,3 @@ public class NodeFragment extends Fragment {
 
 
 }
-
-
-

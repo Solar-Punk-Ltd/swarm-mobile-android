@@ -46,7 +46,6 @@ public class UploadFragment extends Fragment implements StampListener,
 
     private MaterialButton uploadButton;
     private MaterialButton createStampButton;
-
     private MaterialButton selectStampButton;
 
     private MaterialCardView selectedStampCard;
@@ -54,6 +53,12 @@ public class UploadFragment extends Fragment implements StampListener,
     private TruncatedTextView selectedStampBatchId;
     private TextView selectedStampDetails;
     private TextView uploadCountText;
+    private TextView noStampPlaceholder;
+    private View selectedStampBatchIdRow;
+    private View clearStampButton;
+
+    private View selectedFileInfoView;
+    private TextView selectedFileNameText;
 
     private NodeInfo latestNodeInfo;
     private Stamp selectedStamp = null;
@@ -107,7 +112,7 @@ public class UploadFragment extends Fragment implements StampListener,
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_upload, container, false);
 
-        MaterialButton selectFileButton = view.findViewById(R.id.selectFileButton);
+        View selectFileButton = view.findViewById(R.id.selectFileButton);
         selectStampButton = view.findViewById(R.id.selectStampButton);
 
         uploadButton = view.findViewById(R.id.uploadButton);
@@ -118,8 +123,19 @@ public class UploadFragment extends Fragment implements StampListener,
         selectedStampLabel = view.findViewById(R.id.selectedStampLabel);
         selectedStampBatchId = view.findViewById(R.id.selectedStampBatchId);
         selectedStampDetails = view.findViewById(R.id.selectedStampDetails);
+        noStampPlaceholder = view.findViewById(R.id.noStampPlaceholder);
+        selectedStampBatchIdRow = view.findViewById(R.id.selectedStampBatchIdRow);
+        clearStampButton = view.findViewById(R.id.clearStampButton);
 
         uploadCountText = view.findViewById(R.id.uploadCountText);
+        selectedFileInfoView = view.findViewById(R.id.selectedFileInfo);
+        selectedFileNameText = view.findViewById(R.id.selectedFileNameText);
+
+        clearStampButton.setOnClickListener(v -> {
+            selectedStamp = null;
+            updateSelectedStampDisplay();
+            updateUploadButtonState();
+        });
 
         selectFileButton.setOnClickListener(v -> {
             // Launch the file picker to select any file
@@ -149,6 +165,7 @@ public class UploadFragment extends Fragment implements StampListener,
         showUploadsButton.setOnClickListener(v -> showUploadHistoryDialog());
 
         updateUploadCount();
+        updateSelectedStampDisplay();
 
         if (latestNodeInfo != null) {
             updateNodeInfo(latestNodeInfo);
@@ -281,25 +298,40 @@ public class UploadFragment extends Fragment implements StampListener,
         updateUploadButtonState();
     }
 
-    private void updateSelectedStampDisplay() {
-        if (selectedStampCard == null) {
-            return;
+    private void updateSelectedFileDisplay() {
+        if (selectedFileInfoView == null) return;
+        if (selectedFileUri != null && selectedFileName != null) {
+            selectedFileNameText.setText(selectedFileName);
+            selectedFileInfoView.setVisibility(View.VISIBLE);
+        } else {
+            selectedFileInfoView.setVisibility(View.GONE);
         }
+    }
+
+    private void updateSelectedStampDisplay() {
+        if (selectedStampCard == null) return;
 
         if (selectedStamp == null) {
-            selectedStampCard.setVisibility(View.GONE);
+            noStampPlaceholder.setVisibility(View.VISIBLE);
+            selectedStampLabel.setVisibility(View.GONE);
+            selectedStampBatchIdRow.setVisibility(View.GONE);
+            selectedStampDetails.setVisibility(View.GONE);
+            clearStampButton.setVisibility(View.GONE);
             return;
         }
 
-        selectedStampCard.setVisibility(View.VISIBLE);
+        noStampPlaceholder.setVisibility(View.GONE);
+        selectedStampLabel.setVisibility(View.VISIBLE);
+        selectedStampBatchIdRow.setVisibility(View.VISIBLE);
+        selectedStampDetails.setVisibility(View.VISIBLE);
+        clearStampButton.setVisibility(View.VISIBLE);
 
         String displayLabel = (selectedStamp.label() != null && !selectedStamp.label().isEmpty())
                 ? selectedStamp.label()
                 : "Stamp";
         selectedStampLabel.setText(displayLabel);
 
-        String batchIdHex = selectedStamp.batchID();
-        selectedStampBatchId.setText(batchIdHex);
+        selectedStampBatchId.setText(selectedStamp.batchID());
         selectedStampBatchId.setMaxLength(20);
 
         String details = String.format(Locale.US, """
@@ -404,6 +436,7 @@ public class UploadFragment extends Fragment implements StampListener,
             selectedFileUri = uri;
             selectedFileName = fileName;
             updateUploadButtonState();
+            updateSelectedFileDisplay();
 
             String sizeStr = fileSize >= 0 ? fileSize + " bytes" : "size unknown";
             String message = String.format(Locale.US, "File selected: %s (%s, %s)",

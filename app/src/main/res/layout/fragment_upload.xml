@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg_deep">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,9 +16,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="8dp">
+            android:layout_marginBottom="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -27,10 +27,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
                     android:text="@string/stamp_management"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -39,7 +40,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/selectStampButton"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.SwarmMobile.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -48,7 +49,6 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/createStampButton"
-                        style="@style/Widget.MaterialComponents.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -57,108 +57,206 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Selected Stamp Card -->
+        <!-- Selected Stamp Card (fixed height — never resizes) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/selectedStampCard"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="8dp">
+            android:layout_height="120dp"
+            android:layout_marginBottom="12dp"
+            app:strokeColor="@color/swarm_orange"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Header: label + clear button -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/selected_stamp"
+                        android:textColor="@color/swarm_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1" />
+
+                    <ImageButton
+                        android:id="@+id/clearStampButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        app:tint="@color/text_secondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/clear_stamp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- FrameLayout: placeholder and details occupy the same space -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/noStampPlaceholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/no_stamp_selected"
+                        android:textColor="@color/text_hint"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif-light" />
+
+                    <LinearLayout
+                        android:id="@+id/selectedStampBatchIdRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:orientation="vertical"
+                        android:visibility="invisible">
+
+                        <TextView
+                            android:id="@+id/selectedStampLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="4dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="4dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stampId"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginEnd="4dp" />
+
+                            <com.swarm.mobile.views.TruncatedTextView
+                                android:id="@+id/selectedStampBatchId"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/selectedStampDetails"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingExtra="1dp" />
+                    </LinearLayout>
+                </FrameLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Upload Card (fixed height — never resizes) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="@string/selected_stamp"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:text="@string/upload"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
 
                 <TextView
-                    android:id="@+id/selectedStampLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:textColor="?android:attr/textColorPrimary" />
+                    android:text="@string/upload_description"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="12dp" />
 
+                <!-- File drop zone -->
                 <LinearLayout
+                    android:id="@+id/selectFileButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/file_drop_zone_background">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@android:drawable/stat_sys_upload"
+                        android:contentDescription="@string/select_file"
+                        android:layout_marginEnd="8dp"
+                        android:alpha="0.7" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/stampId"
-                        android:textSize="12sp"
-                        android:textColor="?android:attr/textColorSecondary" />
-
-                    <com.swarm.mobile.views.TruncatedTextView
-                        android:id="@+id/selectedStampBatchId"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:text="@string/select_file"
+                        android:textColor="@color/swarm_orange"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/selectedStampDetails"
+                <!-- Selected file info (invisible until picked — keeps layout stable) -->
+                <LinearLayout
+                    android:id="@+id/selectedFileInfo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:layout_marginTop="4dp"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:lineSpacingExtra="2dp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp"
+                    android:visibility="invisible"
+                    tools:ignore="UseCompoundDrawables">
 
-        <!-- Upload Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="8dp">
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@android:drawable/ic_menu_agenda"
+                        android:contentDescription="@null"
+                        android:layout_marginEnd="6dp"
+                        android:alpha="0.5" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/upload"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/upload_description"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectFileButton"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/select_file" />
+                    <TextView
+                        android:id="@+id/selectedFileNameText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="monospace"
+                        android:ellipsize="middle"
+                        android:singleLine="true" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/uploadButton"
-                    style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:enabled="false"
@@ -166,40 +264,45 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Uploads Card -->
+        <!-- Upload History Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="8dp">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/uploads"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/uploadCountText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/uploads_count"
-                    android:textSize="16sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/upload_history"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/uploadCountText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/uploads_count"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/showUploadsButton"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
+                    style="@style/Widget.SwarmMobile.Button.Outlined"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/show_uploads" />
             </LinearLayout>
