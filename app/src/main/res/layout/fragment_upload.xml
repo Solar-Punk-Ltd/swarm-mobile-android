@@ -170,7 +170,7 @@
         <!-- Upload Card (fixed height — never resizes) -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="220dp"
             android:layout_marginBottom="12dp">
 
             <LinearLayout
@@ -224,7 +224,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Selected file info (invisible until picked — keeps layout stable) -->
+                <!-- Selected file info row (always visible — shows placeholder or file name) -->
                 <LinearLayout
                     android:id="@+id/selectedFileInfo"
                     android:layout_width="match_parent"
@@ -232,16 +232,28 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginBottom="10dp"
-                    android:visibility="invisible"
                     tools:ignore="UseCompoundDrawables">
 
+                    <TextView
+                        android:id="@+id/noFilePlaceholder"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/no_file_selected"
+                        android:textColor="@color/text_hint"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif-light"
+                        android:visibility="visible" />
+
                     <ImageView
+                        android:id="@+id/selectedFileIcon"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:src="@android:drawable/ic_menu_agenda"
                         android:contentDescription="@null"
                         android:layout_marginEnd="6dp"
-                        android:alpha="0.5" />
+                        android:alpha="0.5"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/selectedFileNameText"
@@ -252,8 +264,25 @@
                         android:textSize="12sp"
                         android:fontFamily="monospace"
                         android:ellipsize="middle"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:visibility="gone" />
+
+                    <ImageButton
+                        android:id="@+id/clearFileButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        app:tint="@color/text_secondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/clear_file"
+                        android:layout_marginStart="4dp"
+                        android:visibility="gone" />
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/uploadButton"

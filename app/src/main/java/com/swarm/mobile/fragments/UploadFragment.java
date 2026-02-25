@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,8 +57,11 @@ public class UploadFragment extends Fragment implements StampListener,
     private TextView noStampPlaceholder;
     private View selectedStampBatchIdRow;
     private View clearStampButton;
+    private View clearFileButton;
 
     private View selectedFileInfoView;
+    private TextView noFilePlaceholder;
+    private ImageView selectedFileIcon;
     private TextView selectedFileNameText;
 
     private NodeInfo latestNodeInfo;
@@ -126,14 +130,25 @@ public class UploadFragment extends Fragment implements StampListener,
         noStampPlaceholder = view.findViewById(R.id.noStampPlaceholder);
         selectedStampBatchIdRow = view.findViewById(R.id.selectedStampBatchIdRow);
         clearStampButton = view.findViewById(R.id.clearStampButton);
+        clearFileButton = view.findViewById(R.id.clearFileButton);
 
         uploadCountText = view.findViewById(R.id.uploadCountText);
         selectedFileInfoView = view.findViewById(R.id.selectedFileInfo);
+        noFilePlaceholder = view.findViewById(R.id.noFilePlaceholder);
+        selectedFileIcon = view.findViewById(R.id.selectedFileIcon);
         selectedFileNameText = view.findViewById(R.id.selectedFileNameText);
 
         clearStampButton.setOnClickListener(v -> {
             selectedStamp = null;
             updateSelectedStampDisplay();
+            updateUploadButtonState();
+        });
+
+        clearFileButton.setOnClickListener(v -> {
+            selectedFileUri = null;
+            selectedFileName = null;
+            selectedFileMimeType = null;
+            updateSelectedFileDisplay();
             updateUploadButtonState();
         });
 
@@ -195,7 +210,7 @@ public class UploadFragment extends Fragment implements StampListener,
             StampAdapter adapter = new StampAdapter(stamps, stamp -> {
                 selectedStamp = stamp;
                 updateSelectedStampDisplay();
-                Toast.makeText(getContext(), "Selected stamp: " + stamp.label(), Toast.LENGTH_SHORT).show();
+                updateUploadButtonState();
                 dialog.dismiss();
             });
             recyclerView.setAdapter(adapter);
@@ -301,10 +316,16 @@ public class UploadFragment extends Fragment implements StampListener,
     private void updateSelectedFileDisplay() {
         if (selectedFileInfoView == null) return;
         if (selectedFileUri != null && selectedFileName != null) {
+            noFilePlaceholder.setVisibility(View.GONE);
+            selectedFileIcon.setVisibility(View.VISIBLE);
             selectedFileNameText.setText(selectedFileName);
-            selectedFileInfoView.setVisibility(View.VISIBLE);
+            selectedFileNameText.setVisibility(View.VISIBLE);
+            clearFileButton.setVisibility(View.VISIBLE);
         } else {
-            selectedFileInfoView.setVisibility(View.GONE);
+            noFilePlaceholder.setVisibility(View.VISIBLE);
+            selectedFileIcon.setVisibility(View.GONE);
+            selectedFileNameText.setVisibility(View.GONE);
+            clearFileButton.setVisibility(View.GONE);
         }
     }
 

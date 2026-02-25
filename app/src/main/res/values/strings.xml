@@ -37,6 +37,8 @@
     <string name="selected_stamp">Selected Stamp</string>
     <string name="no_stamp_selected">No stamp selected — tap Select Stamp to choose one</string>
     <string name="clear_stamp">Clear selected stamp</string>
+    <string name="clear_file">Clear selected file</string>
+    <string name="no_file_selected">Please select a file for upload.</string>
     <string name="create_stamp">Create Stamp</string>
     <string name="stamp_amount">Amount</string>
     <string name="stamp_depth">Depth</string>
