@@ -68,9 +68,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
         setContentView(R.layout.activity_main);
 
-        nodeFragment = new NodeFragment();
-        downloadFragment = new DownloadFragment();
-        uploadFragment = new UploadFragment();
+
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -78,6 +76,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
             nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
         }
+
+        nodeFragment = new NodeFragment(NodeMode.valueOf(nodeMode));
+        downloadFragment = new DownloadFragment();
+        uploadFragment = new UploadFragment();
 
         Intent serviceIntent = new Intent(this, SwarmNodeService.class);
         serviceIntent.putExtra(IntentKeys.DATA_DIR, getApplicationContext().getFilesDir().getAbsolutePath());

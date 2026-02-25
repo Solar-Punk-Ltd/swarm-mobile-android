@@ -15,16 +15,15 @@
     <string name="default_rpc_endpoint">https://xdai.fairdatasociety.org</string>
 
     <string name="download">Download</string>
+    <string name="download_description">Enter a Swarm hash to retrieve a file from the network</string>
     <string name="hash_hint">Swarm Hash</string>
     <string name="download_button">Download</string>
 
-    <string name="blockchain_info">Blockchain Information\n</string>
-    <string name="wallet_address">Wallet Address\n</string>
-    <string name="chequebook_address">Chequebook Address\n</string>
-    <string name="chequebook_balance">Chequebook Balance\n</string>
-
-
-    <string name="peers_info">Connected Peers: \n</string>
+    <string name="blockchain_info">Blockchain</string>
+    <string name="wallet_address">Wallet Address</string>
+    <string name="chequebook_address">Chequebook Address</string>
+    <string name="chequebook_balance">Chequebook Balance</string>
+    <string name="peers_info">Connected Peers</string>
     <string name="no_peers">0</string>
 
     <string name="node">Node Info</string>
@@ -36,6 +35,10 @@
     <string name="stamp_management">Stamp Management</string>
     <string name="select_stamp">Select Stamp</string>
     <string name="selected_stamp">Selected Stamp</string>
+    <string name="no_stamp_selected">No stamp selected — tap Select Stamp to choose one</string>
+    <string name="clear_stamp">Clear selected stamp</string>
+    <string name="clear_file">Clear selected file</string>
+    <string name="no_file_selected">Please select a file for upload.</string>
     <string name="create_stamp">Create Stamp</string>
     <string name="stamp_amount">Amount</string>
     <string name="stamp_depth">Depth</string>
@@ -52,6 +55,7 @@
     <string name="uploads_count">Uploaded Files: %d</string>
     <string name="close">Close</string>
     <string name="toggle_full_text">Copy to clipboard</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="stampId">ID:</string>
     <string name="hash">Hash:</string>
     <string name="stamp_id">Stamp ID:</string>

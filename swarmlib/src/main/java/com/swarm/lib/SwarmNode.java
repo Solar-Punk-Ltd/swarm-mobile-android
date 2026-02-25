@@ -1,5 +1,8 @@
 package com.swarm.lib;
 
+import android.content.ContentResolver;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -8,6 +11,8 @@ import com.swarm.interfaces.StampListener;
 import com.swarm.interfaces.SwarmNodeListener;
 import com.swarm.interfaces.UploadListener;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -181,11 +186,66 @@ public class SwarmNode {
         }
     }
 
-    public void upload(byte[] content, String filename, String contentType, Stamp stamp,
+    public void upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
                        UploadListener uploadListener
     ) {
         if (isRunning()) {
             new Thread(() -> {
+                byte[] content;
+                try {
+                    // Get exact file size to pre-allocate the buffer and avoid OOM from ByteArrayOutputStream growth
+                    long fileSize = -1;
+                    try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(fileUri, "r")) {
+                        if (pfd != null) {
+                            fileSize = pfd.getStatSize();
+                        }
+                    } catch (IOException ignored) {
+                        // File size unavailable, fall back to dynamic reading
+                    }
+
+                    try (InputStream raw = contentResolver.openInputStream(fileUri)) {
+                        if (raw == null) {
+                            uploadListener.onUploadFailed("Failed to read file: could not open input stream");
+                            return;
+                        }
+                        if (fileSize > 0) {
+                            // Pre-allocate exact size — no re-allocation, no OOM surprise
+                            content = new byte[(int) fileSize];
+                            int offset = 0;
+                            int remaining = content.length;
+                            int bytesRead;
+                            while (remaining > 0 && (bytesRead = raw.read(content, offset, remaining)) != -1) {
+                                offset += bytesRead;
+                                remaining -= bytesRead;
+                            }
+                            if (offset < content.length) {
+                                // Fewer bytes than expected — trim
+                                content = java.util.Arrays.copyOf(content, offset);
+                            }
+                        } else {
+                            // Unknown size fallback: chunked read into a list, then assemble once
+                            java.util.List<byte[]> chunks = new java.util.ArrayList<>();
+                            int totalBytes = 0;
+                            byte[] chunk = new byte[65536];
+                            int bytesRead;
+                            while ((bytesRead = raw.read(chunk, 0, chunk.length)) != -1) {
+                                chunks.add(java.util.Arrays.copyOf(chunk, bytesRead));
+                                totalBytes += bytesRead;
+                            }
+                            content = new byte[totalBytes];
+                            int offset = 0;
+                            for (byte[] c : chunks) {
+                                System.arraycopy(c, 0, content, offset, c.length);
+                                offset += c.length;
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    Logger.getLogger(this.getClass().getName()).severe("Failed to read file for upload: " + e.getMessage());
+                    uploadListener.onUploadFailed("Failed to read file: " + e.getMessage());
+                    return;
+                }
+
                 try {
                     var hash = mobileNode.upload(stamp.batchID(),
                             filename,

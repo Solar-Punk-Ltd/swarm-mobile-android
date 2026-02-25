@@ -7,7 +7,7 @@ android {
     compileSdkVersion 36
 
     defaultConfig {
-        minSdk 35
+        minSdk 30
         targetSdk 36
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -27,8 +27,8 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.13.0'
 
     implementation(name: 'mobile', ext: 'aar')
 }

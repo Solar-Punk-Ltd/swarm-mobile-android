@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,7 +37,6 @@ import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
 import com.swarm.mobile.views.TruncatedTextView;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -47,17 +47,27 @@ public class UploadFragment extends Fragment implements StampListener,
 
     private MaterialButton uploadButton;
     private MaterialButton createStampButton;
+    private MaterialButton selectStampButton;
 
     private MaterialCardView selectedStampCard;
     private TextView selectedStampLabel;
     private TruncatedTextView selectedStampBatchId;
     private TextView selectedStampDetails;
     private TextView uploadCountText;
+    private TextView noStampPlaceholder;
+    private View selectedStampBatchIdRow;
+    private View clearStampButton;
+    private View clearFileButton;
+
+    private View selectedFileInfoView;
+    private TextView noFilePlaceholder;
+    private ImageView selectedFileIcon;
+    private TextView selectedFileNameText;
 
     private NodeInfo latestNodeInfo;
     private Stamp selectedStamp = null;
 
-    private byte[] selectedFileData = null;
+    private Uri selectedFileUri = null;
     private String selectedFileName = null;
     private String selectedFileMimeType = null;
     private ActivityResultLauncher<String> filePickerLauncher;
@@ -106,8 +116,8 @@ public class UploadFragment extends Fragment implements StampListener,
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_upload, container, false);
 
-        MaterialButton selectFileButton = view.findViewById(R.id.selectFileButton);
-        MaterialButton selectStampButton = view.findViewById(R.id.selectStampButton);
+        View selectFileButton = view.findViewById(R.id.selectFileButton);
+        selectStampButton = view.findViewById(R.id.selectStampButton);
 
         uploadButton = view.findViewById(R.id.uploadButton);
         createStampButton = view.findViewById(R.id.createStampButton);
@@ -117,17 +127,50 @@ public class UploadFragment extends Fragment implements StampListener,
         selectedStampLabel = view.findViewById(R.id.selectedStampLabel);
         selectedStampBatchId = view.findViewById(R.id.selectedStampBatchId);
         selectedStampDetails = view.findViewById(R.id.selectedStampDetails);
+        noStampPlaceholder = view.findViewById(R.id.noStampPlaceholder);
+        selectedStampBatchIdRow = view.findViewById(R.id.selectedStampBatchIdRow);
+        clearStampButton = view.findViewById(R.id.clearStampButton);
+        clearFileButton = view.findViewById(R.id.clearFileButton);
 
         uploadCountText = view.findViewById(R.id.uploadCountText);
+        selectedFileInfoView = view.findViewById(R.id.selectedFileInfo);
+        noFilePlaceholder = view.findViewById(R.id.noFilePlaceholder);
+        selectedFileIcon = view.findViewById(R.id.selectedFileIcon);
+        selectedFileNameText = view.findViewById(R.id.selectedFileNameText);
+
+        clearStampButton.setOnClickListener(v -> {
+            selectedStamp = null;
+            updateSelectedStampDisplay();
+            updateUploadButtonState();
+        });
+
+        clearFileButton.setOnClickListener(v -> {
+            selectedFileUri = null;
+            selectedFileName = null;
+            selectedFileMimeType = null;
+            updateSelectedFileDisplay();
+            updateUploadButtonState();
+        });
 
         selectFileButton.setOnClickListener(v -> {
             // Launch the file picker to select any file
             filePickerLauncher.launch("*/*");
         });
 
+
+
+
         uploadButton.setOnClickListener(v -> {
-            if (swarmNodeService == null) return;
-            swarmNodeService.upload(selectedFileData, selectedFileName, selectedFileMimeType, selectedStamp, this);
+            if (swarmNodeService == null) {
+                Log.e("UploadFragment", "SwarmNodeService is null, cannot perform upload");
+                return;
+            }
+            var context = getContext();
+            if (context == null) {
+                Log.e("UploadFragment", "Context is null, cannot perform upload");
+                return;
+            }
+            swarmNodeService.upload(selectedFileUri, getContext().getContentResolver(), selectedFileName, selectedFileMimeType, selectedStamp, this);
         });
 
         selectStampButton.setOnClickListener(v -> this.getAllStamps());
@@ -137,6 +180,7 @@ public class UploadFragment extends Fragment implements StampListener,
         showUploadsButton.setOnClickListener(v -> showUploadHistoryDialog());
 
         updateUploadCount();
+        updateSelectedStampDisplay();
 
         if (latestNodeInfo != null) {
             updateNodeInfo(latestNodeInfo);
@@ -166,7 +210,7 @@ public class UploadFragment extends Fragment implements StampListener,
             StampAdapter adapter = new StampAdapter(stamps, stamp -> {
                 selectedStamp = stamp;
                 updateSelectedStampDisplay();
-                Toast.makeText(getContext(), "Selected stamp: " + stamp.label(), Toast.LENGTH_SHORT).show();
+                updateUploadButtonState();
                 dialog.dismiss();
             });
             recyclerView.setAdapter(adapter);
@@ -208,9 +252,8 @@ public class UploadFragment extends Fragment implements StampListener,
                 if (swarmNodeService == null) return;
                 swarmNodeService.buyStamp(amountStr, depthStr, label, immutable, this);
                 Toast.makeText(getContext(),
-                        "Creating stamp: amount=" + amountStr + ", depth=" + depthStr +
-                                ", label=" + label + ", immutable=" + immutable,
-                        Toast.LENGTH_SHORT).show();
+                        "Creating stamp. Please wait...",
+                        Toast.LENGTH_LONG).show();
 
                 dialog.dismiss();
             } catch (NumberFormatException e) {
@@ -228,10 +271,26 @@ public class UploadFragment extends Fragment implements StampListener,
             return;
         }
 
+        updateUploadButtonState();
+
+        var nodeRunning = NodeStatus.Running == nodeInfo.status();
         getActivity().runOnUiThread(() -> {
-            uploadButton.setEnabled(NodeStatus.Running == latestNodeInfo.status());
-            createStampButton.setEnabled(NodeStatus.Running == latestNodeInfo.status());
+            selectStampButton.setEnabled(nodeRunning);
+            createStampButton.setEnabled(nodeRunning);
         });
+    }
+
+    public void updateUploadButtonState() {
+        if (getActivity() == null) {
+            return;
+        }
+
+        var uploadEnabled = latestNodeInfo != null
+                && NodeStatus.Running == latestNodeInfo.status()
+                && selectedStamp != null
+                && selectedFileUri != null;
+
+        getActivity().runOnUiThread(() -> uploadButton.setEnabled(uploadEnabled));
     }
 
     private void getAllStamps() {
@@ -251,27 +310,49 @@ public class UploadFragment extends Fragment implements StampListener,
     public void onStampClick(Stamp stamp) {
         selectedStamp = stamp;
         updateSelectedStampDisplay();
+        updateUploadButtonState();
+    }
+
+    private void updateSelectedFileDisplay() {
+        if (selectedFileInfoView == null) return;
+        if (selectedFileUri != null && selectedFileName != null) {
+            noFilePlaceholder.setVisibility(View.GONE);
+            selectedFileIcon.setVisibility(View.VISIBLE);
+            selectedFileNameText.setText(selectedFileName);
+            selectedFileNameText.setVisibility(View.VISIBLE);
+            clearFileButton.setVisibility(View.VISIBLE);
+        } else {
+            noFilePlaceholder.setVisibility(View.VISIBLE);
+            selectedFileIcon.setVisibility(View.GONE);
+            selectedFileNameText.setVisibility(View.GONE);
+            clearFileButton.setVisibility(View.GONE);
+        }
     }
 
     private void updateSelectedStampDisplay() {
-        if (selectedStampCard == null) {
-            return;
-        }
+        if (selectedStampCard == null) return;
 
         if (selectedStamp == null) {
-            selectedStampCard.setVisibility(View.GONE);
+            noStampPlaceholder.setVisibility(View.VISIBLE);
+            selectedStampLabel.setVisibility(View.GONE);
+            selectedStampBatchIdRow.setVisibility(View.GONE);
+            selectedStampDetails.setVisibility(View.GONE);
+            clearStampButton.setVisibility(View.GONE);
             return;
         }
 
-        selectedStampCard.setVisibility(View.VISIBLE);
+        noStampPlaceholder.setVisibility(View.GONE);
+        selectedStampLabel.setVisibility(View.VISIBLE);
+        selectedStampBatchIdRow.setVisibility(View.VISIBLE);
+        selectedStampDetails.setVisibility(View.VISIBLE);
+        clearStampButton.setVisibility(View.VISIBLE);
 
         String displayLabel = (selectedStamp.label() != null && !selectedStamp.label().isEmpty())
                 ? selectedStamp.label()
                 : "Stamp";
         selectedStampLabel.setText(displayLabel);
 
-        String batchIdHex = selectedStamp.batchID();
-        selectedStampBatchId.setText(batchIdHex);
+        selectedStampBatchId.setText(selectedStamp.batchID());
         selectedStampBatchId.setMaxLength(20);
 
         String details = String.format(Locale.US, """
@@ -329,7 +410,9 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     /**
-     * Reads file data from the given URI and stores it in selectedFileData and selectedFileName
+     * Stores the URI and reads only file metadata (name, MIME type, size).
+     * The actual file bytes are NOT loaded into memory here — they will be
+     * streamed lazily by SwarmNode when the upload is triggered.
      */
     private void readFileFromUri(Uri uri) {
         if (getContext() == null) {
@@ -341,13 +424,18 @@ public class UploadFragment extends Fragment implements StampListener,
             String mimeType = getContext().getContentResolver().getType(uri);
             selectedFileMimeType = (mimeType != null && !mimeType.isEmpty()) ? mimeType : "application/octet-stream";
 
-            // Get the file name from the URI
+            // Get the file name and size from the URI
             String fileName = null;
+            long fileSize = -1;
             try (var cursor = getContext().getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
                     if (nameIndex != -1) {
                         fileName = cursor.getString(nameIndex);
+                    }
+                    int sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE);
+                    if (sizeIndex != -1) {
+                        fileSize = cursor.getLong(sizeIndex);
                     }
                 }
             }
@@ -366,37 +454,22 @@ public class UploadFragment extends Fragment implements StampListener,
                 fileName = "file";
             }
 
+            selectedFileUri = uri;
             selectedFileName = fileName;
+            updateUploadButtonState();
+            updateSelectedFileDisplay();
 
-            // Read the file data
-            try (InputStream inputStream = getContext().getContentResolver().openInputStream(uri)) {
-                if (inputStream != null) {
-                    // Read all bytes from the input stream (compatible with API 21+)
-                    java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
-                    byte[] data = new byte[8192];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
-                        buffer.write(data, 0, bytesRead);
-                    }
-                    buffer.flush();
-                    selectedFileData = buffer.toByteArray();
+            String sizeStr = fileSize >= 0 ? fileSize + " bytes" : "size unknown";
+            String message = String.format(Locale.US, "File selected: %s (%s, %s)",
+                    selectedFileName, sizeStr, selectedFileMimeType);
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
-                    // Show success message
-                    String message = String.format(Locale.US, "File selected: %s (%d bytes, %s)",
-                            selectedFileName, selectedFileData.length, selectedFileMimeType);
-                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-
-                    Log.i("UploadFragment", "File loaded: " + selectedFileName +
-                            ", size: " + selectedFileData.length + " bytes" +
-                            ", MIME type: " + selectedFileMimeType);
-                } else {
-                    Toast.makeText(getContext(), "Failed to open file", Toast.LENGTH_SHORT).show();
-                }
-            }
+            Log.i("UploadFragment", "File selected: " + selectedFileName
+                    + ", " + sizeStr + ", MIME type: " + selectedFileMimeType);
         } catch (Exception e) {
-            Log.e("UploadFragment", "Error reading file", e);
+            Log.e("UploadFragment", "Error reading file metadata", e);
             Toast.makeText(getContext(), "Error reading file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            selectedFileData = null;
+            selectedFileUri = null;
             selectedFileName = null;
             selectedFileMimeType = null;
         }
