@@ -31,8 +31,8 @@ import com.swarm.lib.Stamp;
 import com.swarm.mobile.R;
 import com.swarm.mobile.StampAdapter;
 import com.swarm.mobile.SwarmNodeService;
-import com.swarm.mobile.HistoryRecord;
-import com.swarm.mobile.HistoryRecordAdapter;
+import com.swarm.mobile.UploadDownloadHistoryRecord;
+import com.swarm.mobile.UploadHistoryRecordAdapter;
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
 import com.swarm.mobile.views.TruncatedTextView;
@@ -48,6 +48,7 @@ public class UploadFragment extends Fragment implements StampListener,
     private MaterialButton uploadButton;
     private MaterialButton createStampButton;
     private MaterialButton selectStampButton;
+    private MaterialButton showUploadsButton;
 
     private MaterialCardView selectedStampCard;
     private TextView selectedStampLabel;
@@ -72,7 +73,7 @@ public class UploadFragment extends Fragment implements StampListener,
     private String selectedFileMimeType = null;
     private ActivityResultLauncher<String> filePickerLauncher;
 
-    private final List<HistoryRecord> uploadHistory = new ArrayList<>();
+    private final List<UploadDownloadHistoryRecord> uploadHistory = new ArrayList<>();
     private UploadHistoryStorage uploadHistoryStorage;
 
     private SwarmNodeService swarmNodeService;
@@ -92,7 +93,7 @@ public class UploadFragment extends Fragment implements StampListener,
             uploadHistoryStorage = new UploadHistoryStorage(getContext());
 
             if (uploadHistory.isEmpty()) {
-                List<HistoryRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
+                List<UploadDownloadHistoryRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
                 uploadHistory.addAll(savedHistory);
                 Log.i("UploadFragment", "Loaded " + savedHistory.size() + " upload records from storage");
             } else {
@@ -121,7 +122,7 @@ public class UploadFragment extends Fragment implements StampListener,
 
         uploadButton = view.findViewById(R.id.uploadButton);
         createStampButton = view.findViewById(R.id.createStampButton);
-        MaterialButton showUploadsButton = view.findViewById(R.id.showUploadsButton);
+        showUploadsButton = view.findViewById(R.id.showUploadsButton);
 
         selectedStampCard = view.findViewById(R.id.selectedStampCard);
         selectedStampLabel = view.findViewById(R.id.selectedStampLabel);
@@ -370,14 +371,14 @@ public class UploadFragment extends Fragment implements StampListener,
         Log.i("UploadFragment", "Upload successful with hash: " + hash);
 
         if (selectedFileName != null && selectedStamp != null) {
-            HistoryRecord existingRecord = findRecordByHash(hash);
+            UploadDownloadHistoryRecord existingRecord = findRecordByHash(hash);
 
             if (existingRecord != null) {
                 uploadHistory.remove(existingRecord);
                 Log.i("UploadFragment", "Found existing record for hash, updating it");
             }
 
-            HistoryRecord record = new HistoryRecord(
+            UploadDownloadHistoryRecord record = new UploadDownloadHistoryRecord(
                     selectedFileName,
                     hash,
                     System.currentTimeMillis(),
@@ -487,26 +488,32 @@ public class UploadFragment extends Fragment implements StampListener,
                 .setView(dialogView)
                 .create();
 
-        HistoryRecordAdapter adapter = getUploadRecordAdapter();
+        UploadHistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
         dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
-            if (uploadHistoryStorage != null) {
-                uploadHistoryStorage.clearUploadHistory();
-            }
-            int size = uploadHistory.size();
-            uploadHistory.clear();
-            adapter.notifyItemRangeRemoved(0, size);
-            updateUploadCount();
+            new AlertDialog.Builder(getContext())
+                    .setMessage("Are you sure?")
+                    .setPositiveButton("Yes", (confirmDialog, which) -> {
+                        if (uploadHistoryStorage != null) {
+                            uploadHistoryStorage.clearUploadHistory();
+                        }
+                        int size = uploadHistory.size();
+                        uploadHistory.clear();
+                        adapter.notifyItemRangeRemoved(0, size);
+                        updateUploadCount();
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
-
 
         dialog.show();
     }
 
     @NonNull
-    private HistoryRecordAdapter getUploadRecordAdapter() {
-        HistoryRecordAdapter adapter = new HistoryRecordAdapter(uploadHistory);
+    private UploadHistoryRecordAdapter getUploadRecordAdapter() {
+        UploadHistoryRecordAdapter adapter = new UploadHistoryRecordAdapter(uploadHistory);
         adapter.setOnRemoveListener(position -> {
             if (position >= 0 && position < uploadHistory.size()) {
                 uploadHistory.remove(position);
@@ -528,14 +535,17 @@ public class UploadFragment extends Fragment implements StampListener,
                     uploadHistory.size());
             uploadCountText.setText(countText);
         }
+        if (showUploadsButton != null) {
+            showUploadsButton.setVisibility(uploadHistory.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+        }
     }
 
-    private HistoryRecord findRecordByHash(String hash) {
+    private UploadDownloadHistoryRecord findRecordByHash(String hash) {
         if (hash == null || hash.isEmpty()) {
             return null;
         }
 
-        for (HistoryRecord record : uploadHistory) {
+        for (UploadDownloadHistoryRecord record : uploadHistory) {
             if (hash.equals(record.hash())) {
                 return record;
             }

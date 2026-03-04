@@ -21,9 +21,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
+import com.swarm.mobile.DownloadHistoryRecord;
 import com.swarm.mobile.R;
-import com.swarm.mobile.HistoryRecord;
-import com.swarm.mobile.HistoryRecordAdapter;
+import com.swarm.mobile.DownloadHistoryRecordAdapter;
 import com.swarm.mobile.storage.DownloadHistoryStorage;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class DownloadFragment extends Fragment {
     private NodeInfo latestNodeInfo;
     private String lastRequestedHash = null;
 
-    private final List<HistoryRecord> downloadHistory = new ArrayList<>();
+    private final List<DownloadHistoryRecord> downloadHistory = new ArrayList<>();
     private DownloadHistoryStorage downloadHistoryStorage;
 
 
@@ -62,7 +62,7 @@ public class DownloadFragment extends Fragment {
             downloadHistoryStorage = new DownloadHistoryStorage(getContext());
 
             if (downloadHistory.isEmpty()) {
-                List<HistoryRecord> savedHistory = downloadHistoryStorage.loadDownloadHistory();
+                List<DownloadHistoryRecord> savedHistory = downloadHistoryStorage.loadDownloadHistory();
                 downloadHistory.addAll(savedHistory);
                 Log.i("DownloadFragment", "Loaded " + savedHistory.size() + " download records from storage");
             }
@@ -119,7 +119,7 @@ public class DownloadFragment extends Fragment {
 
     public void onDownloadSuccess(String filename, String downloadRateMBps) {
         String hash = lastRequestedHash != null ? lastRequestedHash : "";
-        HistoryRecord record = new HistoryRecord(filename, hash, System.currentTimeMillis(), "", "", downloadRateMBps);
+        DownloadHistoryRecord record = new DownloadHistoryRecord(filename, hash, System.currentTimeMillis(), downloadRateMBps);
 
         if (!hash.isEmpty()) {
             downloadHistory.removeIf(r -> hash.equals(r.hash()));
@@ -182,7 +182,7 @@ public class DownloadFragment extends Fragment {
             downloadCountText.setText(countText);
         }
         if (showDownloadsButton != null) {
-            showDownloadsButton.setEnabled(!downloadHistory.isEmpty());
+            showDownloadsButton.setVisibility(downloadHistory.isEmpty() ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -197,17 +197,24 @@ public class DownloadFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
-        HistoryRecordAdapter adapter = getUploadRecordAdapter();
+        DownloadHistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
         dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
-            if (downloadHistoryStorage != null) {
-                downloadHistoryStorage.clearDownloadHistory();
-            }
-            int size = downloadHistory.size();
-            downloadHistory.clear();
-            adapter.notifyItemRangeRemoved(0, size);
-            updateDownloadCount();
+            new AlertDialog.Builder(getContext())
+                    .setMessage("Are you sure?")
+                    .setPositiveButton("Yes", (confirmDialog, which) -> {
+                        if (downloadHistoryStorage != null) {
+                            downloadHistoryStorage.clearDownloadHistory();
+                        }
+                        int size = downloadHistory.size();
+                        downloadHistory.clear();
+                        adapter.notifyItemRangeRemoved(0, size);
+                        updateDownloadCount();
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
 
 
@@ -215,8 +222,8 @@ public class DownloadFragment extends Fragment {
     }
 
     @NonNull
-    private HistoryRecordAdapter getUploadRecordAdapter() {
-        HistoryRecordAdapter adapter = new HistoryRecordAdapter(downloadHistory, "Download date: ");
+    private DownloadHistoryRecordAdapter getUploadRecordAdapter() {
+        DownloadHistoryRecordAdapter adapter = new DownloadHistoryRecordAdapter(downloadHistory, "Download date: ");
         adapter.setOnRemoveListener(position -> {
             if (position >= 0 && position < downloadHistory.size()) {
                 downloadHistory.remove(position);

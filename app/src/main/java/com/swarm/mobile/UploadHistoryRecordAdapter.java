@@ -1,0 +1,107 @@
+package com.swarm.mobile;
+
+import android.annotation.SuppressLint;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.swarm.mobile.views.TruncatedTextView;
+
+import java.util.List;
+
+public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHistoryRecordAdapter.UploadHistoryRecordViewHolder> {
+
+    public interface OnRemoveListener {
+        void onRemove(int position);
+    }
+
+    private final List<UploadDownloadHistoryRecord> historyRecords;
+    private OnRemoveListener onRemoveListener;
+
+    public UploadHistoryRecordAdapter(List<UploadDownloadHistoryRecord> historyRecords) {
+        this.historyRecords = historyRecords;
+    }
+
+    public void setOnRemoveListener(OnRemoveListener listener) {
+        this.onRemoveListener = listener;
+    }
+
+    @NonNull
+    @Override
+    public UploadHistoryRecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_upload_record, parent, false);
+        return new UploadHistoryRecordViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull UploadHistoryRecordViewHolder holder, int position) {
+        UploadDownloadHistoryRecord record = historyRecords.get(position);
+        holder.bind(record);
+        holder.removeButton.setOnClickListener(v -> {
+            if (onRemoveListener != null) {
+                onRemoveListener.onRemove(holder.getBindingAdapterPosition());
+            }
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return historyRecords.size();
+    }
+
+    public static class UploadHistoryRecordViewHolder extends RecyclerView.ViewHolder {
+        private final TextView filenameTextView;
+        private final TruncatedTextView hashTextView;
+        private final TextView dateTextView;
+        private final TextView transferRateTextView;
+        private final TextView stampLabelTextView;
+        private final TruncatedTextView stampIdTextView;
+        final ImageButton removeButton;
+
+        public UploadHistoryRecordViewHolder(@NonNull View itemView) {
+            super(itemView);
+            filenameTextView = itemView.findViewById(R.id.recordFilename);
+            hashTextView = itemView.findViewById(R.id.recordHash);
+            dateTextView = itemView.findViewById(R.id.recordCreationDate);
+            transferRateTextView = itemView.findViewById(R.id.transferRate);
+            stampLabelTextView = itemView.findViewById(R.id.recordStampLabel);
+            stampIdTextView = itemView.findViewById(R.id.recordStampId);
+            removeButton = itemView.findViewById(R.id.removeRecordButton);
+        }
+
+        @SuppressLint("SetTextI18n")
+        public void bind(UploadDownloadHistoryRecord record) {
+            filenameTextView.setText(record.filename());
+
+            hashTextView.setText(record.hash());
+            hashTextView.setMaxLength(20);
+
+            dateTextView.setText("Upload date: " + record.getFormattedDate());
+
+            String rate = record.transferRateMBps();
+            if (rate != null && !rate.isEmpty()) {
+                transferRateTextView.setText("Transfer rate: " + rate);
+                transferRateTextView.setVisibility(View.VISIBLE);
+            } else {
+                transferRateTextView.setVisibility(View.GONE);
+            }
+
+            String stampName = record.stampLabel();
+            if (stampName != null && !stampName.isEmpty() && !stampName.equals("recovered")) {
+                stampLabelTextView.setText("Stamp: " + stampName);
+            } else {
+                stampLabelTextView.setText("Stamp: N/A");
+            }
+
+            stampIdTextView.setText(record.stampId());
+            stampIdTextView.setMaxLength(20);
+        }
+    }
+}
+

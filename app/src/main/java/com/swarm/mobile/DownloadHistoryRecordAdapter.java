@@ -14,22 +14,18 @@ import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.List;
 
-public class HistoryRecordAdapter extends RecyclerView.Adapter<HistoryRecordAdapter.HistoryRecordViewHolder> {
+public class DownloadHistoryRecordAdapter extends RecyclerView.Adapter<DownloadHistoryRecordAdapter.DownloadHistoryRecordViewHolder> {
 
     public interface OnRemoveListener {
         void onRemove(int position);
     }
 
-    private final List<HistoryRecord> historyRecords;
+    private final List<DownloadHistoryRecord> downloadHistoryRecords;
     private final String datePrefix;
     private OnRemoveListener onRemoveListener;
 
-    public HistoryRecordAdapter(List<HistoryRecord> historyRecords) {
-        this(historyRecords, "Upload date: ");
-    }
-
-    public HistoryRecordAdapter(List<HistoryRecord> historyRecords, String datePrefix) {
-        this.historyRecords = historyRecords;
+    public DownloadHistoryRecordAdapter(List<DownloadHistoryRecord> downloadHistoryRecords, String datePrefix) {
+        this.downloadHistoryRecords = downloadHistoryRecords;
         this.datePrefix = datePrefix;
     }
 
@@ -39,15 +35,15 @@ public class HistoryRecordAdapter extends RecyclerView.Adapter<HistoryRecordAdap
 
     @NonNull
     @Override
-    public HistoryRecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public DownloadHistoryRecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_upload_record, parent, false);
-        return new HistoryRecordViewHolder(view);
+                .inflate(R.layout.item_download_record, parent, false);
+        return new DownloadHistoryRecordViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull HistoryRecordViewHolder holder, int position) {
-        HistoryRecord record = historyRecords.get(position);
+    public void onBindViewHolder(@NonNull DownloadHistoryRecordViewHolder holder, int position) {
+        DownloadHistoryRecord record = downloadHistoryRecords.get(position);
         holder.bind(record, datePrefix);
         holder.removeButton.setOnClickListener(v -> {
             if (onRemoveListener != null) {
@@ -58,38 +54,33 @@ public class HistoryRecordAdapter extends RecyclerView.Adapter<HistoryRecordAdap
 
     @Override
     public int getItemCount() {
-        return historyRecords.size();
+        return downloadHistoryRecords.size();
     }
 
-    public static class HistoryRecordViewHolder extends RecyclerView.ViewHolder {
+    public static class DownloadHistoryRecordViewHolder extends RecyclerView.ViewHolder {
         private final TextView filenameTextView;
         private final TruncatedTextView hashTextView;
         private final TextView dateTextView;
         private final TextView transferRateTextView;
-        private final TextView stampLabelTextView;
-        private final TruncatedTextView stampIdTextView;
         final ImageButton removeButton;
 
-        public HistoryRecordViewHolder(@NonNull View itemView) {
+        public DownloadHistoryRecordViewHolder(@NonNull View itemView) {
             super(itemView);
             filenameTextView = itemView.findViewById(R.id.recordFilename);
             hashTextView = itemView.findViewById(R.id.recordHash);
             dateTextView = itemView.findViewById(R.id.recordCreationDate);
             transferRateTextView = itemView.findViewById(R.id.transferRate);
-            stampLabelTextView = itemView.findViewById(R.id.recordStampLabel);
-            stampIdTextView = itemView.findViewById(R.id.recordStampId);
             removeButton = itemView.findViewById(R.id.removeRecordButton);
         }
 
         @SuppressLint("SetTextI18n")
-        public void bind(HistoryRecord record, String datePrefix) {
+        public void bind(DownloadHistoryRecord record, String datePrefix) {
             filenameTextView.setText(record.filename());
 
             hashTextView.setText(record.hash());
             hashTextView.setMaxLength(20);
 
-            String dateLabel = datePrefix + record.getFormattedDate();
-            dateTextView.setText(dateLabel);
+            dateTextView.setText(datePrefix + record.getFormattedDate());
 
             String rate = record.transferRateMBps();
             if (rate != null && !rate.isEmpty()) {
@@ -98,16 +89,6 @@ public class HistoryRecordAdapter extends RecyclerView.Adapter<HistoryRecordAdap
             } else {
                 transferRateTextView.setVisibility(View.GONE);
             }
-
-            String stampName = record.stampLabel();
-            if (stampName != null && !stampName.isEmpty() && !stampName.equals("recovered")) {
-                stampLabelTextView.setText("Stamp: " + stampName);
-            } else {
-                stampLabelTextView.setText("Stamp: N/A");
-            }
-
-            stampIdTextView.setText(record.stampId());
-            stampIdTextView.setMaxLength(20);
         }
     }
 }

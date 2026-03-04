@@ -6,7 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.swarm.mobile.HistoryRecord;
+import com.swarm.mobile.DownloadHistoryRecord;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,7 +28,7 @@ public final class DownloadHistoryStorage {
         this.preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveDownloadHistory(List<HistoryRecord> downloadHistory) {
+    public void saveDownloadHistory(List<DownloadHistoryRecord> downloadHistory) {
         try {
             JSONArray jsonArray = getJsonArray(downloadHistory);
 
@@ -43,24 +43,22 @@ public final class DownloadHistoryStorage {
     }
 
     @NonNull
-    private static JSONArray getJsonArray(List<HistoryRecord> downloadHistory) throws JSONException {
+    private static JSONArray getJsonArray(List<DownloadHistoryRecord> downloadHistory) throws JSONException {
         JSONArray jsonArray = new JSONArray();
 
-        for (HistoryRecord record : downloadHistory) {
+        for (DownloadHistoryRecord record : downloadHistory) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("filename", record.filename());
             jsonObject.put("hash", record.hash());
             jsonObject.put("uploadDate", record.uploadDate());
-            jsonObject.put("stampId", record.stampId());
-            jsonObject.put("stampLabel", record.stampLabel());
             jsonObject.put("transferRateMBps", record.transferRateMBps() != null ? record.transferRateMBps() : "");
             jsonArray.put(jsonObject);
         }
         return jsonArray;
     }
 
-    public List<HistoryRecord> loadDownloadHistory() {
-        List<HistoryRecord> downloadHistory = new ArrayList<>();
+    public List<DownloadHistoryRecord> loadDownloadHistory() {
+        List<DownloadHistoryRecord> downloadHistory = new ArrayList<>();
 
         try {
             String jsonString = preferences.getString(KEY_DOWNLOAD_RECORDS, null);
@@ -74,12 +72,9 @@ public final class DownloadHistoryStorage {
                     String filename = jsonObject.getString("filename");
                     String hash = jsonObject.getString("hash");
                     long uploadDate = jsonObject.getLong("uploadDate");
-                    String stampId = jsonObject.optString("stampId", "");
-                    String stampLabel = jsonObject.optString("stampLabel", "");
                     String transferRateMBps = jsonObject.optString("transferRateMBps", "");
 
-                    HistoryRecord record = new HistoryRecord(filename, hash, uploadDate, stampId, stampLabel, transferRateMBps);
-                    downloadHistory.add(record);
+                    downloadHistory.add(new DownloadHistoryRecord(filename, hash, uploadDate, transferRateMBps));
                 }
 
                 Log.d(TAG, "Loaded " + downloadHistory.size() + " download records");
