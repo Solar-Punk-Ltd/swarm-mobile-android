@@ -182,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     }
 
     @Override
-    public void onDownloadSuccess(String filename, byte[] data) {
+    public void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps) {
+        downloadFragment.onDownloadSuccess(filename, downloadRateMBps);
         runOnUiThread(() -> {
             pendingDownloadData = data;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);

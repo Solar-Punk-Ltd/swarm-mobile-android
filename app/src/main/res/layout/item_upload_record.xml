@@ -54,6 +54,15 @@
             android:textColor="@color/text_secondary" />
 
         <TextView
+            android:id="@+id/transferRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/uploadRecordStampLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

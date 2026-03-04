@@ -157,7 +157,9 @@ public class SwarmNode {
         if (isRunning()) {
             new Thread(() -> {
                 try {
-                    var file = mobileNode.download(hash);
+                    var result = mobileNode.download(hash);
+
+                    var file = result.getFile();
 
                     if (file == null) {
                         Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
@@ -165,7 +167,7 @@ public class SwarmNode {
                         return;
                     }
 
-                    notifyDownloadSuccess(file.getName(), file.getData());
+                    notifyDownloadSuccess(file.getName(), file.getData(), result.getStats().getRateInMBps());
                 } catch (Exception e) {
                     Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + e.getMessage());
                     throw new RuntimeException(e);
@@ -180,9 +182,9 @@ public class SwarmNode {
         }
     }
 
-    private void notifyDownloadSuccess(String fileName, byte[] data) {
+    private void notifyDownloadSuccess(String fileName, byte[] data, String downloadRateMBps) {
         for (SwarmNodeListener listener: listeners) {
-            listener.onDownloadSuccess(fileName, data);
+            listener.onDownloadSuccess(fileName, data, downloadRateMBps);
         }
     }
 
@@ -262,7 +264,7 @@ public class SwarmNode {
                         return;
                     }
 
-                    uploadListener.onUploadSuccessful(hash.getReferenceHex());
+                    uploadListener.onUploadSuccessful(hash.getReferenceHex(), hash.getStats().getRateOutMBps());
                 } catch (Exception e) {
                     Logger.getLogger(this.getClass().getName()).info("Unexpected error during upload: " + e.getMessage());
                     uploadListener.onUploadFailed("Unexpected error during upload: " + e.getMessage());

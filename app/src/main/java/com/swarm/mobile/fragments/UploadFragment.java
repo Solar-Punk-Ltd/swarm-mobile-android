@@ -31,7 +31,7 @@ import com.swarm.lib.Stamp;
 import com.swarm.mobile.R;
 import com.swarm.mobile.StampAdapter;
 import com.swarm.mobile.SwarmNodeService;
-import com.swarm.mobile.UploadRecord;
+import com.swarm.mobile.HistoryRecord;
 import com.swarm.mobile.UploadRecordAdapter;
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
@@ -72,7 +72,7 @@ public class UploadFragment extends Fragment implements StampListener,
     private String selectedFileMimeType = null;
     private ActivityResultLauncher<String> filePickerLauncher;
 
-    private final List<UploadRecord> uploadHistory = new ArrayList<>();
+    private final List<HistoryRecord> uploadHistory = new ArrayList<>();
     private UploadHistoryStorage uploadHistoryStorage;
 
     private SwarmNodeService swarmNodeService;
@@ -92,7 +92,7 @@ public class UploadFragment extends Fragment implements StampListener,
             uploadHistoryStorage = new UploadHistoryStorage(getContext());
 
             if (uploadHistory.isEmpty()) {
-                List<UploadRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
+                List<HistoryRecord> savedHistory = uploadHistoryStorage.loadUploadHistory();
                 uploadHistory.addAll(savedHistory);
                 Log.i("UploadFragment", "Loaded " + savedHistory.size() + " upload records from storage");
             } else {
@@ -366,23 +366,24 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     @Override
-    public void onUploadSuccessful(String hash) {
+    public void onUploadSuccessful(String hash, String uploadRateMBps) {
         Log.i("UploadFragment", "Upload successful with hash: " + hash);
 
         if (selectedFileName != null && selectedStamp != null) {
-            UploadRecord existingRecord = findRecordByHash(hash);
+            HistoryRecord existingRecord = findRecordByHash(hash);
 
             if (existingRecord != null) {
                 uploadHistory.remove(existingRecord);
                 Log.i("UploadFragment", "Found existing record for hash, updating it");
             }
 
-            UploadRecord record = new UploadRecord(
+            HistoryRecord record = new HistoryRecord(
                     selectedFileName,
                     hash,
                     System.currentTimeMillis(),
                     selectedStamp.batchID(),
-                    selectedStamp.label()
+                    selectedStamp.label(),
+                    uploadRateMBps
             );
             uploadHistory.add(0, record);
 
@@ -503,12 +504,12 @@ public class UploadFragment extends Fragment implements StampListener,
         }
     }
 
-    private UploadRecord findRecordByHash(String hash) {
+    private HistoryRecord findRecordByHash(String hash) {
         if (hash == null || hash.isEmpty()) {
             return null;
         }
 
-        for (UploadRecord record : uploadHistory) {
+        for (HistoryRecord record : uploadHistory) {
             if (hash.equals(record.hash())) {
                 return record;
             }
