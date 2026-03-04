@@ -15,14 +15,31 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/uploadRecordFilename"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/uploadRecordFilename"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <ImageButton
+                android:id="@+id/removeRecordButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/remove_record"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

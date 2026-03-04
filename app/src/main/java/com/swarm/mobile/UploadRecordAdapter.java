@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,8 +16,13 @@ import java.util.List;
 
 public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapter.UploadRecordViewHolder> {
 
+    public interface OnRemoveListener {
+        void onRemove(int position);
+    }
+
     private final List<HistoryRecord> historyRecords;
     private final String datePrefix;
+    private OnRemoveListener onRemoveListener;
 
     public UploadRecordAdapter(List<HistoryRecord> historyRecords) {
         this(historyRecords, "Upload date: ");
@@ -25,6 +31,10 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
     public UploadRecordAdapter(List<HistoryRecord> historyRecords, String datePrefix) {
         this.historyRecords = historyRecords;
         this.datePrefix = datePrefix;
+    }
+
+    public void setOnRemoveListener(OnRemoveListener listener) {
+        this.onRemoveListener = listener;
     }
 
     @NonNull
@@ -39,6 +49,11 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
     public void onBindViewHolder(@NonNull UploadRecordViewHolder holder, int position) {
         HistoryRecord record = historyRecords.get(position);
         holder.bind(record, datePrefix);
+        holder.removeButton.setOnClickListener(v -> {
+            if (onRemoveListener != null) {
+                onRemoveListener.onRemove(holder.getBindingAdapterPosition());
+            }
+        });
     }
 
     @Override
@@ -53,6 +68,7 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
         private final TextView transferRateTextView;
         private final TextView stampLabelTextView;
         private final TruncatedTextView stampIdTextView;
+        final ImageButton removeButton;
 
         public UploadRecordViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -62,6 +78,7 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
             transferRateTextView = itemView.findViewById(R.id.transferRate);
             stampLabelTextView = itemView.findViewById(R.id.uploadRecordStampLabel);
             stampIdTextView = itemView.findViewById(R.id.uploadRecordStampId);
+            removeButton = itemView.findViewById(R.id.removeRecordButton);
         }
 
         @SuppressLint("SetTextI18n")

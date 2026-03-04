@@ -197,12 +197,38 @@ public class DownloadFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
-        UploadRecordAdapter adapter = new UploadRecordAdapter(downloadHistory, "Download date: ");
+        UploadRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
+
+        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
+            if (downloadHistoryStorage != null) {
+                downloadHistoryStorage.clearDownloadHistory();
+            }
+            int size = downloadHistory.size();
+            downloadHistory.clear();
+            adapter.notifyItemRangeRemoved(0, size);
+            updateDownloadCount();
+        });
 
         dialogView.findViewById(R.id.closeButton).setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
+    }
+
+    @NonNull
+    private UploadRecordAdapter getUploadRecordAdapter() {
+        UploadRecordAdapter adapter = new UploadRecordAdapter(downloadHistory, "Download date: ");
+        adapter.setOnRemoveListener(position -> {
+            if (position >= 0 && position < downloadHistory.size()) {
+                downloadHistory.remove(position);
+                adapter.notifyItemRemoved(position);
+                if (downloadHistoryStorage != null) {
+                    downloadHistoryStorage.saveDownloadHistory(downloadHistory);
+                }
+                updateDownloadCount();
+            }
+        });
+        return adapter;
     }
 
     public void setDownloadListener(DownloadListener listener) {
