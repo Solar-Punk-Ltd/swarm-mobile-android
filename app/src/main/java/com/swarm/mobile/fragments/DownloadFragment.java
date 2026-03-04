@@ -200,22 +200,20 @@ public class DownloadFragment extends Fragment {
         DownloadHistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
-        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
-            new AlertDialog.Builder(getContext())
-                    .setMessage("Are you sure?")
-                    .setPositiveButton("Yes", (confirmDialog, which) -> {
-                        if (downloadHistoryStorage != null) {
-                            downloadHistoryStorage.clearDownloadHistory();
-                        }
-                        int size = downloadHistory.size();
-                        downloadHistory.clear();
-                        adapter.notifyItemRangeRemoved(0, size);
-                        updateDownloadCount();
-                        dialog.dismiss();
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
-        });
+        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> new AlertDialog.Builder(getContext())
+                .setMessage("Are you sure?")
+                .setPositiveButton("Yes", (confirmDialog, which) -> {
+                    if (downloadHistoryStorage != null) {
+                        downloadHistoryStorage.clearDownloadHistory();
+                    }
+                    int size = downloadHistory.size();
+                    downloadHistory.clear();
+                    adapter.notifyItemRangeRemoved(0, size);
+                    updateDownloadCount();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("No", null)
+                .show());
 
 
         dialog.show();

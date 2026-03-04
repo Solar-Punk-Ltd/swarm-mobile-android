@@ -491,22 +491,20 @@ public class UploadFragment extends Fragment implements StampListener,
         UploadHistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
-        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
-            new AlertDialog.Builder(getContext())
-                    .setMessage("Are you sure?")
-                    .setPositiveButton("Yes", (confirmDialog, which) -> {
-                        if (uploadHistoryStorage != null) {
-                            uploadHistoryStorage.clearUploadHistory();
-                        }
-                        int size = uploadHistory.size();
-                        uploadHistory.clear();
-                        adapter.notifyItemRangeRemoved(0, size);
-                        updateUploadCount();
-                        dialog.dismiss();
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
-        });
+        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> new AlertDialog.Builder(getContext())
+                .setMessage("Are you sure?")
+                .setPositiveButton("Yes", (confirmDialog, which) -> {
+                    if (uploadHistoryStorage != null) {
+                        uploadHistoryStorage.clearUploadHistory();
+                    }
+                    int size = uploadHistory.size();
+                    uploadHistory.clear();
+                    adapter.notifyItemRangeRemoved(0, size);
+                    updateUploadCount();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("No", null)
+                .show());
 
         dialog.show();
     }
