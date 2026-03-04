@@ -129,8 +129,13 @@ public class SwarmNode {
     }
 
     private static Stamp convertStampDataToStamp(StampData stampData) {
+        // bee assigns 'recovered' to stamps created without a label; treat it as no label
+        String label = stampData.getLabel();
+        if ("recovered".equals(label)) {
+            label = "";
+        }
         return new Stamp(
-                stampData.getLabel(),
+                label,
                 stampData.getBatchIdHex(),
                 stampData.getBatchAmount(),
                 stampData.getBatchDepth(),

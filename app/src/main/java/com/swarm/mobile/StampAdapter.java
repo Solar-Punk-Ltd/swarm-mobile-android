@@ -61,11 +61,6 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
                 ? stamp.label()
                 : "Stamp";
 
-            // bee sets 'recovered' string when no label is provided on stamp creation
-            if (displayLabel.equals("recovered")) {
-                displayLabel = "N/A";
-            }
-
             stampIdText.setText(displayLabel);
 
             String batchIdHex = stamp.batchID();
