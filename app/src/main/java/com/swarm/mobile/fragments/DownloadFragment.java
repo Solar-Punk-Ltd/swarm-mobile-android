@@ -23,7 +23,7 @@ import com.swarm.lib.NodeInfo;
 import com.swarm.lib.NodeStatus;
 import com.swarm.mobile.R;
 import com.swarm.mobile.HistoryRecord;
-import com.swarm.mobile.UploadRecordAdapter;
+import com.swarm.mobile.HistoryRecordAdapter;
 import com.swarm.mobile.storage.DownloadHistoryStorage;
 
 import java.util.ArrayList;
@@ -197,7 +197,7 @@ public class DownloadFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
-        UploadRecordAdapter adapter = getUploadRecordAdapter();
+        HistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
         dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
@@ -210,14 +210,13 @@ public class DownloadFragment extends Fragment {
             updateDownloadCount();
         });
 
-        dialogView.findViewById(R.id.closeButton).setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
 
     @NonNull
-    private UploadRecordAdapter getUploadRecordAdapter() {
-        UploadRecordAdapter adapter = new UploadRecordAdapter(downloadHistory, "Download date: ");
+    private HistoryRecordAdapter getUploadRecordAdapter() {
+        HistoryRecordAdapter adapter = new HistoryRecordAdapter(downloadHistory, "Download date: ");
         adapter.setOnRemoveListener(position -> {
             if (position >= 0 && position < downloadHistory.size()) {
                 downloadHistory.remove(position);

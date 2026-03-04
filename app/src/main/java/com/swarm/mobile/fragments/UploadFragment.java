@@ -32,7 +32,7 @@ import com.swarm.mobile.R;
 import com.swarm.mobile.StampAdapter;
 import com.swarm.mobile.SwarmNodeService;
 import com.swarm.mobile.HistoryRecord;
-import com.swarm.mobile.UploadRecordAdapter;
+import com.swarm.mobile.HistoryRecordAdapter;
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
 import com.swarm.mobile.views.TruncatedTextView;
@@ -487,12 +487,38 @@ public class UploadFragment extends Fragment implements StampListener,
                 .setView(dialogView)
                 .create();
 
-        UploadRecordAdapter adapter = new UploadRecordAdapter(uploadHistory);
+        HistoryRecordAdapter adapter = getUploadRecordAdapter();
         recyclerView.setAdapter(adapter);
 
-        dialogView.findViewById(R.id.closeButton).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> {
+            if (uploadHistoryStorage != null) {
+                uploadHistoryStorage.clearUploadHistory();
+            }
+            int size = uploadHistory.size();
+            uploadHistory.clear();
+            adapter.notifyItemRangeRemoved(0, size);
+            updateUploadCount();
+        });
+
 
         dialog.show();
+    }
+
+    @NonNull
+    private HistoryRecordAdapter getUploadRecordAdapter() {
+        HistoryRecordAdapter adapter = new HistoryRecordAdapter(uploadHistory);
+        adapter.setOnRemoveListener(position -> {
+            if (position >= 0 && position < uploadHistory.size()) {
+                uploadHistory.remove(position);
+                adapter.notifyItemRemoved(position);
+                if (uploadHistoryStorage != null) {
+                    uploadHistoryStorage.saveUploadHistory(uploadHistory);
+                }
+                updateUploadCount();
+            }
+        });
+
+        return adapter;
     }
 
     private void updateUploadCount() {

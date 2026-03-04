@@ -23,7 +23,7 @@
             android:layout_marginBottom="8dp">
 
             <TextView
-                android:id="@+id/uploadRecordFilename"
+                android:id="@+id/recordFilename"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -33,11 +33,12 @@
 
             <ImageButton
                 android:id="@+id/removeRecordButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/remove_record"
+                app:tint="@color/text_secondary"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
@@ -57,13 +58,13 @@
                 android:layout_marginEnd="4dp" />
 
             <com.swarm.mobile.views.TruncatedTextView
-                android:id="@+id/uploadRecordHash"
+                android:id="@+id/recordHash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/uploadRecordDate"
+            android:id="@+id/recordCreationDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -80,7 +81,7 @@
             android:visibility="gone" />
 
         <TextView
-            android:id="@+id/uploadRecordStampLabel"
+            android:id="@+id/recordStampLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
@@ -102,7 +103,7 @@
                 android:layout_marginEnd="4dp" />
 
             <com.swarm.mobile.views.TruncatedTextView
-                android:id="@+id/uploadRecordStampId"
+                android:id="@+id/recordStampId"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>

@@ -14,7 +14,7 @@ import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.List;
 
-public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapter.UploadRecordViewHolder> {
+public class HistoryRecordAdapter extends RecyclerView.Adapter<HistoryRecordAdapter.HistoryRecordViewHolder> {
 
     public interface OnRemoveListener {
         void onRemove(int position);
@@ -24,11 +24,11 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
     private final String datePrefix;
     private OnRemoveListener onRemoveListener;
 
-    public UploadRecordAdapter(List<HistoryRecord> historyRecords) {
+    public HistoryRecordAdapter(List<HistoryRecord> historyRecords) {
         this(historyRecords, "Upload date: ");
     }
 
-    public UploadRecordAdapter(List<HistoryRecord> historyRecords, String datePrefix) {
+    public HistoryRecordAdapter(List<HistoryRecord> historyRecords, String datePrefix) {
         this.historyRecords = historyRecords;
         this.datePrefix = datePrefix;
     }
@@ -39,14 +39,14 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
 
     @NonNull
     @Override
-    public UploadRecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public HistoryRecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_upload_record, parent, false);
-        return new UploadRecordViewHolder(view);
+        return new HistoryRecordViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull UploadRecordViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull HistoryRecordViewHolder holder, int position) {
         HistoryRecord record = historyRecords.get(position);
         holder.bind(record, datePrefix);
         holder.removeButton.setOnClickListener(v -> {
@@ -61,7 +61,7 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
         return historyRecords.size();
     }
 
-    public static class UploadRecordViewHolder extends RecyclerView.ViewHolder {
+    public static class HistoryRecordViewHolder extends RecyclerView.ViewHolder {
         private final TextView filenameTextView;
         private final TruncatedTextView hashTextView;
         private final TextView dateTextView;
@@ -70,14 +70,14 @@ public class UploadRecordAdapter extends RecyclerView.Adapter<UploadRecordAdapte
         private final TruncatedTextView stampIdTextView;
         final ImageButton removeButton;
 
-        public UploadRecordViewHolder(@NonNull View itemView) {
+        public HistoryRecordViewHolder(@NonNull View itemView) {
             super(itemView);
-            filenameTextView = itemView.findViewById(R.id.uploadRecordFilename);
-            hashTextView = itemView.findViewById(R.id.uploadRecordHash);
-            dateTextView = itemView.findViewById(R.id.uploadRecordDate);
+            filenameTextView = itemView.findViewById(R.id.recordFilename);
+            hashTextView = itemView.findViewById(R.id.recordHash);
+            dateTextView = itemView.findViewById(R.id.recordCreationDate);
             transferRateTextView = itemView.findViewById(R.id.transferRate);
-            stampLabelTextView = itemView.findViewById(R.id.uploadRecordStampLabel);
-            stampIdTextView = itemView.findViewById(R.id.uploadRecordStampId);
+            stampLabelTextView = itemView.findViewById(R.id.recordStampLabel);
+            stampIdTextView = itemView.findViewById(R.id.recordStampId);
             removeButton = itemView.findViewById(R.id.removeRecordButton);
         }
 
