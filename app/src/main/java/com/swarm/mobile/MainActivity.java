@@ -170,7 +170,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     private void startDownload(String hash) {
         if (serviceBound && swarmNodeService != null) {
-            swarmNodeService.download(hash);
+            boolean started = swarmNodeService.download(hash);
+            if (!started) {
+                downloadFragment.setDownloading(false);
+            }
         }
     }
 
@@ -183,6 +186,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     @Override
     public void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps) {
+        if (swarmNodeService != null) {
+            swarmNodeService.onDownloadFinished();
+        }
+        downloadFragment.setDownloading(false);
         downloadFragment.onDownloadSuccess(filename, downloadRateMBps);
         runOnUiThread(() -> {
             pendingDownloadData = data;
@@ -195,6 +202,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     }
 
     public void onHashNotFound() {
+        if (swarmNodeService != null) {
+            swarmNodeService.onDownloadFinished();
+        }
+        downloadFragment.setDownloading(false);
         runOnUiThread(() -> {
             var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Hash Not Found")

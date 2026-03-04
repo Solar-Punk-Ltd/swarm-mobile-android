@@ -77,6 +77,7 @@ public class UploadFragment extends Fragment implements StampListener,
     private UploadHistoryStorage uploadHistoryStorage;
 
     private SwarmNodeService swarmNodeService;
+    private boolean isUploading = false;
 
     public UploadFragment() {
     }
@@ -171,7 +172,11 @@ public class UploadFragment extends Fragment implements StampListener,
                 Log.e("UploadFragment", "Context is null, cannot perform upload");
                 return;
             }
-            swarmNodeService.upload(selectedFileUri, getContext().getContentResolver(), selectedFileName, selectedFileMimeType, selectedStamp, this);
+            boolean started = swarmNodeService.upload(selectedFileUri, context.getContentResolver(), selectedFileName, selectedFileMimeType, selectedStamp, this);
+            if (started) {
+                isUploading = true;
+                updateUploadButtonState();
+            }
         });
 
         selectStampButton.setOnClickListener(v -> this.getAllStamps());
@@ -289,9 +294,15 @@ public class UploadFragment extends Fragment implements StampListener,
         var uploadEnabled = latestNodeInfo != null
                 && NodeStatus.Running == latestNodeInfo.status()
                 && selectedStamp != null
-                && selectedFileUri != null;
+                && selectedFileUri != null
+                && !isUploading;
 
         getActivity().runOnUiThread(() -> uploadButton.setEnabled(uploadEnabled));
+    }
+
+    public void setUploading(boolean uploading) {
+        isUploading = uploading;
+        updateUploadButtonState();
     }
 
     private void getAllStamps() {
@@ -369,6 +380,8 @@ public class UploadFragment extends Fragment implements StampListener,
     @Override
     public void onUploadSuccessful(String hash, String uploadRateMBps) {
         Log.i("UploadFragment", "Upload successful with hash: " + hash);
+        if (swarmNodeService != null) swarmNodeService.onUploadFinished();
+        setUploading(false);
 
         if (selectedFileName != null && selectedStamp != null) {
             UploadDownloadHistoryRecord existingRecord = findRecordByHash(hash);
@@ -404,6 +417,8 @@ public class UploadFragment extends Fragment implements StampListener,
 
     @Override
     public void onUploadFailed(String error) {
+        if (swarmNodeService != null) swarmNodeService.onUploadFinished();
+        setUploading(false);
         if (getActivity() != null) {
             getActivity().runOnUiThread(() ->
                     Toast.makeText(getContext(), "Error during upload: " + error, Toast.LENGTH_SHORT).show()

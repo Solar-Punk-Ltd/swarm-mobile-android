@@ -45,6 +45,7 @@ public class DownloadFragment extends Fragment {
 
     private NodeInfo latestNodeInfo;
     private String lastRequestedHash = null;
+    private boolean isDownloading = false;
 
     private final List<DownloadHistoryRecord> downloadHistory = new ArrayList<>();
     private DownloadHistoryStorage downloadHistoryStorage;
@@ -104,6 +105,8 @@ public class DownloadFragment extends Fragment {
             if (downloadListener != null && isHashValid()) {
                 @SuppressWarnings("DataFlowIssue") String hash = hashInput.getText().toString().trim();
                 lastRequestedHash = hash;
+                isDownloading = true;
+                updateDownloadButtonState();
                 downloadListener.onDownloadRequested(hash);
             }
         });
@@ -169,9 +172,16 @@ public class DownloadFragment extends Fragment {
     private void updateDownloadButtonState() {
         boolean isNodeRunning = latestNodeInfo != null && NodeStatus.Running == latestNodeInfo.status();
 
-        downloadButton.setEnabled(isNodeRunning && isHashValid() &&
+        downloadButton.setEnabled(isNodeRunning && !isDownloading && isHashValid() &&
                                    hashInput.getText() != null &&
                                    !hashInput.getText().toString().trim().isEmpty());
+    }
+
+    public void setDownloading(boolean downloading) {
+        isDownloading = downloading;
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(this::updateDownloadButtonState);
+        }
     }
 
     private void updateDownloadCount() {
