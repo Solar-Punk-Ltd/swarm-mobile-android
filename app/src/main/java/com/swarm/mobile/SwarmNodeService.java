@@ -1,6 +1,5 @@
 package com.swarm.mobile;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -125,17 +124,28 @@ public class SwarmNodeService extends Service {
         }
     }
 
-    public void upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
-                       UploadListener uploadListener
+    private volatile boolean uploading = false;
+
+    public boolean upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
+                          UploadListener uploadListener
     ) {
         Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType
                 + ", uri=" + (fileUri != null ? fileUri.toString() : "null")
                 + ", stamp=" + (stamp != null ? stamp.toString() : "null"));
-        if (swarmNode != null) {
+        if (swarmNode != null && !uploading) {
+            uploading = true;
             swarmNode.upload(fileUri, contentResolver, filename, contentType, stamp, uploadListener);
+            return true;
+        } else if (uploading) {
+            Log.w(TAG, "upload() called but an upload is already in progress");
         } else {
             Log.w(TAG, "upload() called but swarmNode is null");
         }
+        return false;
+    }
+
+    public void onUploadFinished() {
+        uploading = false;
     }
 
     public void addListener(SwarmNodeListener listener) {
@@ -154,19 +164,27 @@ public class SwarmNodeService extends Service {
         return swarmNode != null ? swarmNode.getConnectedPeers() : 0;
     }
 
-    public void download(String hash) {
-        if (swarmNode != null) {
-            swarmNode.download(hash);
+    private volatile boolean downloading = false;
+
+    public boolean download(String hash) {
+        if (swarmNode != null && !downloading) {
+            downloading = true;
+            try {
+                swarmNode.download(hash);
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start download for hash: " + hash, e);
+                downloading = false;
+                throw e;
+            }
         }
+        return false;
     }
 
-    @SuppressLint("MissingPermission")
-    public void updateNotification(String message) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (notificationManager != null) {
-            notificationManager.notify(NOTIFICATION_ID, createNotification(message));
-        }
+    public void onDownloadFinished() {
+        downloading = false;
     }
+
 
     private void createNotificationChannel() {
         NotificationChannel serviceChannel = new NotificationChannel(
@@ -180,7 +198,7 @@ public class SwarmNodeService extends Service {
         }
     }
 
-    private Notification createNotification(String message) {
+    private Notification createNotification(@SuppressWarnings("SameParameterValue") String message) {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,

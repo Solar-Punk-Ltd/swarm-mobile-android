@@ -5,7 +5,9 @@ import com.swarm.lib.NodeInfo;
 public interface SwarmNodeListener {
     void onNodeInfoChanged(NodeInfo nodeInfo);
 
-    void onDownloadSuccess(String filename, byte[] data);
+    void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps);
+
+    void onDownloadFailed(String hash, String errorMessage);
 
     void onHashNotFound();
 }

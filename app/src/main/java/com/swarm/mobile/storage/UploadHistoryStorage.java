@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.swarm.mobile.UploadRecord;
+import com.swarm.mobile.UploadHistoryRecord;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,17 +28,18 @@ public final class UploadHistoryStorage {
     }
 
 
-    public void saveUploadHistory(List<UploadRecord> uploadHistory) {
+    public void saveUploadHistory(List<UploadHistoryRecord> uploadHistory) {
         try {
             JSONArray jsonArray = new JSONArray();
 
-            for (UploadRecord record : uploadHistory) {
+            for (UploadHistoryRecord record : uploadHistory) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("filename", record.filename());
                 jsonObject.put("hash", record.hash());
-                jsonObject.put("uploadDate", record.uploadDate());
+                jsonObject.put("actionDate", record.actionDate());
                 jsonObject.put("stampId", record.stampId());
                 jsonObject.put("stampLabel", record.stampLabel());
+                jsonObject.put("transferRateMBps", record.transferRateMBps() != null ? record.transferRateMBps() : "");
                 jsonArray.put(jsonObject);
             }
 
@@ -53,8 +54,8 @@ public final class UploadHistoryStorage {
     }
 
 
-    public List<UploadRecord> loadUploadHistory() {
-        List<UploadRecord> uploadHistory = new ArrayList<>();
+    public List<UploadHistoryRecord> loadUploadHistory() {
+        List<UploadHistoryRecord> uploadHistory = new ArrayList<>();
 
         try {
             String jsonString = preferences.getString(KEY_UPLOAD_RECORDS, null);
@@ -67,12 +68,12 @@ public final class UploadHistoryStorage {
 
                     String filename = jsonObject.getString("filename");
                     String hash = jsonObject.getString("hash");
-                    long uploadDate = jsonObject.getLong("uploadDate");
-                    String stampId = jsonObject.getString("stampId");
-                    String stampLabel = jsonObject.getString("stampLabel");
+                    long actionDate = jsonObject.getLong("actionDate");
+                    String stampId = jsonObject.optString("stampId", "");
+                    String stampLabel = jsonObject.optString("stampLabel", "");
+                    String transferRateMBps = jsonObject.optString("transferRateMBps", "");
 
-                    UploadRecord record = new UploadRecord(filename, hash, uploadDate, stampId, stampLabel);
-                    uploadHistory.add(record);
+                    uploadHistory.add(new UploadHistoryRecord(filename, hash, actionDate, stampId, stampLabel, transferRateMBps));
                 }
 
                 Log.d(TAG, "Loaded " + uploadHistory.size() + " upload records");
@@ -94,9 +95,4 @@ public final class UploadHistoryStorage {
         Log.d(TAG, "Cleared upload history");
     }
 
-    public void addUploadRecord(UploadRecord record) {
-        List<UploadRecord> history = loadUploadHistory();
-        history.add(0, record); // Add to beginning
-        saveUploadHistory(history);
-    }
 }

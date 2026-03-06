@@ -53,7 +53,13 @@
     <string name="upload_history">Upload History</string>
     <string name="show_uploads">Show Uploads</string>
     <string name="uploads_count">Uploaded Files: %d</string>
+
+    <string name="download_history">Download History</string>
+    <string name="show_downloads">Show Downloads</string>
+    <string name="downloads_count">Downloaded Files: %d</string>
     <string name="close">Close</string>
+    <string name="clear_history">Clear All</string>
+    <string name="remove_record">Remove</string>
     <string name="toggle_full_text">Copy to clipboard</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="stampId">ID:</string>

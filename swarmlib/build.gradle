@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.swarm.lib'
-    compileSdkVersion 36
+    compileSdkVersion 34
 
     defaultConfig {
         minSdk 30

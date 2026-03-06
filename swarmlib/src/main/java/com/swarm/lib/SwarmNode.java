@@ -129,8 +129,13 @@ public class SwarmNode {
     }
 
     private static Stamp convertStampDataToStamp(StampData stampData) {
+        // bee assigns 'recovered' to stamps created without a label; treat it as no label
+        String label = stampData.getLabel();
+        if ("recovered".equals(label)) {
+            label = "";
+        }
         return new Stamp(
-                stampData.getLabel(),
+                label,
                 stampData.getBatchIdHex(),
                 stampData.getBatchAmount(),
                 stampData.getBatchDepth(),
@@ -157,7 +162,9 @@ public class SwarmNode {
         if (isRunning()) {
             new Thread(() -> {
                 try {
-                    var file = mobileNode.download(hash);
+                    var result = mobileNode.download(hash);
+
+                    var file = result.getFile();
 
                     if (file == null) {
                         Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
@@ -165,9 +172,11 @@ public class SwarmNode {
                         return;
                     }
 
-                    notifyDownloadSuccess(file.getName(), file.getData());
+                    notifyDownloadSuccess(file.getName(), file.getData(), result.getStats().getRateInMBps());
                 } catch (Exception e) {
-                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + e.getMessage());
+                    var message = e.getMessage();
+                    notifyDownloadFailed(hash, message);
+                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + message);
                     throw new RuntimeException(e);
                 }
             }).start();
@@ -180,9 +189,15 @@ public class SwarmNode {
         }
     }
 
-    private void notifyDownloadSuccess(String fileName, byte[] data) {
+    private void notifyDownloadSuccess(String fileName, byte[] data, String downloadRateMBps) {
         for (SwarmNodeListener listener: listeners) {
-            listener.onDownloadSuccess(fileName, data);
+            listener.onDownloadSuccess(fileName, data, downloadRateMBps);
+        }
+    }
+
+    private void notifyDownloadFailed(String hash, String errorMessage) {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onDownloadFailed(hash, errorMessage);
         }
     }
 
@@ -262,7 +277,7 @@ public class SwarmNode {
                         return;
                     }
 
-                    uploadListener.onUploadSuccessful(hash.getReferenceHex());
+                    uploadListener.onUploadSuccessful(hash.getReferenceHex(), hash.getStats().getRateOutMBps());
                 } catch (Exception e) {
                     Logger.getLogger(this.getClass().getName()).info("Unexpected error during upload: " + e.getMessage());
                     uploadListener.onUploadFailed("Unexpected error during upload: " + e.getMessage());

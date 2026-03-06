@@ -170,7 +170,13 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     private void startDownload(String hash) {
         if (serviceBound && swarmNodeService != null) {
-            swarmNodeService.download(hash);
+            boolean started = swarmNodeService.download(hash);
+            if (!started) {
+                downloadFragment.setDownloading(false);
+            }
+        } else {
+            Log.w("MainActivity", "startDownload() called but service is not bound");
+            downloadFragment.setDownloading(false);
         }
     }
 
@@ -182,7 +188,10 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     }
 
     @Override
-    public void onDownloadSuccess(String filename, byte[] data) {
+    public void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps) {
+        markDownloadFinished();
+
+        downloadFragment.onDownloadSuccess(filename, downloadRateMBps);
         runOnUiThread(() -> {
             pendingDownloadData = data;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
@@ -193,7 +202,33 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         });
     }
 
+    @Override
+    public void onDownloadFailed(String hash, String errorMessage) {
+        markDownloadFinished();
+
+        runOnUiThread(() -> {
+            var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Download Failed")
+                    .setMessage("Failed to download content for hash: " + hash + "\nError: " + errorMessage)
+                    .setPositiveButton("OK", null)
+                    .create();
+            alertDialog.show();
+        });
+    }
+
+    private void markDownloadFinished() {
+        if (swarmNodeService != null) {
+            swarmNodeService.onDownloadFinished();
+        }
+        downloadFragment.setDownloading(false);
+    }
+
+
     public void onHashNotFound() {
+        if (swarmNodeService != null) {
+            swarmNodeService.onDownloadFinished();
+        }
+        downloadFragment.setDownloading(false);
         runOnUiThread(() -> {
             var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Hash Not Found")
