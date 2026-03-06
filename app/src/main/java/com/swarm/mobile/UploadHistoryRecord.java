@@ -8,8 +8,8 @@ public final class UploadHistoryRecord extends DownloadHistoryRecord {
     private final String stampId;
     private final String stampLabel;
 
-    public UploadHistoryRecord(String filename, String hash, long uploadDate, String stampId, String stampLabel, String transferRateMBps) {
-        super(filename, hash, uploadDate, transferRateMBps);
+    public UploadHistoryRecord(String filename, String hash, long actionDate, String stampId, String stampLabel, String transferRateMBps) {
+        super(filename, hash, actionDate, transferRateMBps);
         this.stampId = stampId;
         this.stampLabel = stampLabel;
     }
@@ -34,7 +34,7 @@ public final class UploadHistoryRecord extends DownloadHistoryRecord {
     @Override
     public String toString() {
         return "UploadHistoryRecord[filename=" + filename() + ", hash=" + hash() +
-               ", uploadDate=" + downloadDate() + ", stampId=" + stampId +
+               ", actionDate=" + actionDate() + ", stampId=" + stampId +
                ", stampLabel=" + stampLabel + ", transferRateMBps=" + transferRateMBps() + "]";
     }
 }

@@ -36,7 +36,7 @@ public final class UploadHistoryStorage {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("filename", record.filename());
                 jsonObject.put("hash", record.hash());
-                jsonObject.put("downloadDate", record.downloadDate());
+                jsonObject.put("actionDate", record.actionDate());
                 jsonObject.put("stampId", record.stampId());
                 jsonObject.put("stampLabel", record.stampLabel());
                 jsonObject.put("transferRateMBps", record.transferRateMBps() != null ? record.transferRateMBps() : "");
@@ -68,12 +68,12 @@ public final class UploadHistoryStorage {
 
                     String filename = jsonObject.getString("filename");
                     String hash = jsonObject.getString("hash");
-                    long downloadDate = jsonObject.getLong("downloadDate");
+                    long actionDate = jsonObject.getLong("actionDate");
                     String stampId = jsonObject.optString("stampId", "");
                     String stampLabel = jsonObject.optString("stampLabel", "");
                     String transferRateMBps = jsonObject.optString("transferRateMBps", "");
 
-                    uploadHistory.add(new UploadHistoryRecord(filename, hash, downloadDate, stampId, stampLabel, transferRateMBps));
+                    uploadHistory.add(new UploadHistoryRecord(filename, hash, actionDate, stampId, stampLabel, transferRateMBps));
                 }
 
                 Log.d(TAG, "Loaded " + uploadHistory.size() + " upload records");

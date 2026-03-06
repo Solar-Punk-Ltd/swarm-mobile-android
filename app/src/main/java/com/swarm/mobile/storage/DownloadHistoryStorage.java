@@ -50,7 +50,7 @@ public final class DownloadHistoryStorage {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("filename", record.filename());
             jsonObject.put("hash", record.hash());
-            jsonObject.put("uploadDate", record.downloadDate());
+            jsonObject.put("actionDate", record.actionDate());
             jsonObject.put("transferRateMBps", record.transferRateMBps() != null ? record.transferRateMBps() : "");
             jsonArray.put(jsonObject);
         }
@@ -71,10 +71,10 @@ public final class DownloadHistoryStorage {
 
                     String filename = jsonObject.getString("filename");
                     String hash = jsonObject.getString("hash");
-                    long downloadDate = jsonObject.getLong("downloadDate");
+                    long actionDate = jsonObject.getLong("actionDate");
                     String transferRateMBps = jsonObject.optString("transferRateMBps", "");
 
-                    downloadHistory.add(new DownloadHistoryRecord(filename, hash, downloadDate, transferRateMBps));
+                    downloadHistory.add(new DownloadHistoryRecord(filename, hash, actionDate, transferRateMBps));
                 }
 
                 Log.d(TAG, "Loaded " + downloadHistory.size() + " download records");
