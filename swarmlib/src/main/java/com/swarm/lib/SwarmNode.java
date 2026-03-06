@@ -174,7 +174,9 @@ public class SwarmNode {
 
                     notifyDownloadSuccess(file.getName(), file.getData(), result.getStats().getRateInMBps());
                 } catch (Exception e) {
-                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + e.getMessage());
+                    var message = e.getMessage();
+                    notifyDownloadFailed(hash, message);
+                    Logger.getLogger(this.getClass().getName()).severe("Unexpected error during download: " + message);
                     throw new RuntimeException(e);
                 }
             }).start();
@@ -190,6 +192,12 @@ public class SwarmNode {
     private void notifyDownloadSuccess(String fileName, byte[] data, String downloadRateMBps) {
         for (SwarmNodeListener listener: listeners) {
             listener.onDownloadSuccess(fileName, data, downloadRateMBps);
+        }
+    }
+
+    private void notifyDownloadFailed(String hash, String errorMessage) {
+        for (SwarmNodeListener listener: listeners) {
+            listener.onDownloadFailed(hash, errorMessage);
         }
     }
 

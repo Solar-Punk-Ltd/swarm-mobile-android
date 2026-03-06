@@ -7,5 +7,7 @@ public interface SwarmNodeListener {
 
     void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps);
 
+    void onDownloadFailed(String hash, String errorMessage);
+
     void onHashNotFound();
 }

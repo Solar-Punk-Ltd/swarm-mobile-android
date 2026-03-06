@@ -189,10 +189,8 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
 
     @Override
     public void onDownloadSuccess(String filename, byte[] data, String downloadRateMBps) {
-        if (swarmNodeService != null) {
-            swarmNodeService.onDownloadFinished();
-        }
-        downloadFragment.setDownloading(false);
+        markDownloadFinished();
+
         downloadFragment.onDownloadSuccess(filename, downloadRateMBps);
         runOnUiThread(() -> {
             pendingDownloadData = data;
@@ -203,6 +201,28 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             createDocumentLauncher.launch(intent);
         });
     }
+
+    @Override
+    public void onDownloadFailed(String hash, String errorMessage) {
+        markDownloadFinished();
+
+        runOnUiThread(() -> {
+            var alertDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Download Failed")
+                    .setMessage("Failed to download content for hash: " + hash + "\nError: " + errorMessage)
+                    .setPositiveButton("OK", null)
+                    .create();
+            alertDialog.show();
+        });
+    }
+
+    private void markDownloadFinished() {
+        if (swarmNodeService != null) {
+            swarmNodeService.onDownloadFinished();
+        }
+        downloadFragment.setDownloading(false);
+    }
+
 
     public void onHashNotFound() {
         if (swarmNodeService != null) {
