@@ -20,10 +20,10 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
         void onRemove(int position);
     }
 
-    private final List<UploadDownloadHistoryRecord> historyRecords;
+    private final List<UploadHistoryRecord> historyRecords;
     private OnRemoveListener onRemoveListener;
 
-    public UploadHistoryRecordAdapter(List<UploadDownloadHistoryRecord> historyRecords) {
+    public UploadHistoryRecordAdapter(List<UploadHistoryRecord> historyRecords) {
         this.historyRecords = historyRecords;
     }
 
@@ -41,7 +41,7 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
 
     @Override
     public void onBindViewHolder(@NonNull UploadHistoryRecordViewHolder holder, int position) {
-        UploadDownloadHistoryRecord record = historyRecords.get(position);
+        UploadHistoryRecord record = historyRecords.get(position);
         holder.bind(record);
         holder.removeButton.setOnClickListener(v -> {
             if (onRemoveListener != null) {
@@ -76,7 +76,7 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
         }
 
         @SuppressLint("SetTextI18n")
-        public void bind(UploadDownloadHistoryRecord record) {
+        public void bind(UploadHistoryRecord record) {
             filenameTextView.setText(record.filename());
 
             hashTextView.setText(record.hash());

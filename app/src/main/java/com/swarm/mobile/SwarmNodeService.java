@@ -127,7 +127,7 @@ public class SwarmNodeService extends Service {
     private volatile boolean uploading = false;
 
     public boolean upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
-                       UploadListener uploadListener
+                          UploadListener uploadListener
     ) {
         Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType
                 + ", uri=" + (fileUri != null ? fileUri.toString() : "null")
@@ -169,8 +169,14 @@ public class SwarmNodeService extends Service {
     public boolean download(String hash) {
         if (swarmNode != null && !downloading) {
             downloading = true;
-            swarmNode.download(hash);
-            return true;
+            try {
+                swarmNode.download(hash);
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start download for hash: " + hash, e);
+                downloading = false;
+                throw e;
+            }
         }
         return false;
     }
@@ -192,7 +198,7 @@ public class SwarmNodeService extends Service {
         }
     }
 
-    private Notification createNotification(String message) {
+    private Notification createNotification(@SuppressWarnings("SameParameterValue") String message) {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,

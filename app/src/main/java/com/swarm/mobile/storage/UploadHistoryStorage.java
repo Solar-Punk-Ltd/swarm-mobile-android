@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.swarm.mobile.UploadDownloadHistoryRecord;
+import com.swarm.mobile.UploadHistoryRecord;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,15 +28,15 @@ public final class UploadHistoryStorage {
     }
 
 
-    public void saveUploadHistory(List<UploadDownloadHistoryRecord> uploadHistory) {
+    public void saveUploadHistory(List<UploadHistoryRecord> uploadHistory) {
         try {
             JSONArray jsonArray = new JSONArray();
 
-            for (UploadDownloadHistoryRecord record : uploadHistory) {
+            for (UploadHistoryRecord record : uploadHistory) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("filename", record.filename());
                 jsonObject.put("hash", record.hash());
-                jsonObject.put("uploadDate", record.uploadDate());
+                jsonObject.put("downloadDate", record.downloadDate());
                 jsonObject.put("stampId", record.stampId());
                 jsonObject.put("stampLabel", record.stampLabel());
                 jsonObject.put("transferRateMBps", record.transferRateMBps() != null ? record.transferRateMBps() : "");
@@ -54,8 +54,8 @@ public final class UploadHistoryStorage {
     }
 
 
-    public List<UploadDownloadHistoryRecord> loadUploadHistory() {
-        List<UploadDownloadHistoryRecord> uploadHistory = new ArrayList<>();
+    public List<UploadHistoryRecord> loadUploadHistory() {
+        List<UploadHistoryRecord> uploadHistory = new ArrayList<>();
 
         try {
             String jsonString = preferences.getString(KEY_UPLOAD_RECORDS, null);
@@ -68,12 +68,12 @@ public final class UploadHistoryStorage {
 
                     String filename = jsonObject.getString("filename");
                     String hash = jsonObject.getString("hash");
-                    long uploadDate = jsonObject.getLong("uploadDate");
+                    long downloadDate = jsonObject.getLong("downloadDate");
                     String stampId = jsonObject.optString("stampId", "");
                     String stampLabel = jsonObject.optString("stampLabel", "");
                     String transferRateMBps = jsonObject.optString("transferRateMBps", "");
 
-                    uploadHistory.add(new UploadDownloadHistoryRecord(filename, hash, uploadDate, stampId, stampLabel, transferRateMBps));
+                    uploadHistory.add(new UploadHistoryRecord(filename, hash, downloadDate, stampId, stampLabel, transferRateMBps));
                 }
 
                 Log.d(TAG, "Loaded " + uploadHistory.size() + " upload records");

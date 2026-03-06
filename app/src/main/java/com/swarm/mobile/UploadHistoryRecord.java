@@ -4,11 +4,11 @@ import androidx.annotation.NonNull;
 
 import java.util.Objects;
 
-public final class UploadDownloadHistoryRecord extends DownloadHistoryRecord {
+public final class UploadHistoryRecord extends DownloadHistoryRecord {
     private final String stampId;
     private final String stampLabel;
 
-    public UploadDownloadHistoryRecord(String filename, String hash, long uploadDate, String stampId, String stampLabel, String transferRateMBps) {
+    public UploadHistoryRecord(String filename, String hash, long uploadDate, String stampId, String stampLabel, String transferRateMBps) {
         super(filename, hash, uploadDate, transferRateMBps);
         this.stampId = stampId;
         this.stampLabel = stampLabel;
@@ -20,7 +20,7 @@ public final class UploadDownloadHistoryRecord extends DownloadHistoryRecord {
     @Override
     public boolean equals(Object o) {
         if (!super.equals(o)) return false;
-        if (!(o instanceof UploadDownloadHistoryRecord other)) return false;
+        if (!(o instanceof UploadHistoryRecord other)) return false;
         return Objects.equals(stampId, other.stampId) &&
                Objects.equals(stampLabel, other.stampLabel);
     }
@@ -33,8 +33,8 @@ public final class UploadDownloadHistoryRecord extends DownloadHistoryRecord {
     @NonNull
     @Override
     public String toString() {
-        return "UploadDownloadHistoryRecord[filename=" + filename() + ", hash=" + hash() +
-               ", uploadDate=" + uploadDate() + ", stampId=" + stampId +
+        return "UploadHistoryRecord[filename=" + filename() + ", hash=" + hash() +
+               ", uploadDate=" + downloadDate() + ", stampId=" + stampId +
                ", stampLabel=" + stampLabel + ", transferRateMBps=" + transferRateMBps() + "]";
     }
 }

@@ -207,7 +207,7 @@ public class DownloadFragment extends Fragment {
                 .setView(dialogView)
                 .create();
 
-        DownloadHistoryRecordAdapter adapter = getUploadRecordAdapter();
+        DownloadHistoryRecordAdapter adapter = getDownloadHistoryRecordAdapter();
         recyclerView.setAdapter(adapter);
 
         dialogView.findViewById(R.id.clearHistoryButton).setOnClickListener(v -> new AlertDialog.Builder(getContext())
@@ -230,7 +230,7 @@ public class DownloadFragment extends Fragment {
     }
 
     @NonNull
-    private DownloadHistoryRecordAdapter getUploadRecordAdapter() {
+    private DownloadHistoryRecordAdapter getDownloadHistoryRecordAdapter() {
         DownloadHistoryRecordAdapter adapter = new DownloadHistoryRecordAdapter(downloadHistory, "Download date: ");
         adapter.setOnRemoveListener(position -> {
             if (position >= 0 && position < downloadHistory.size()) {

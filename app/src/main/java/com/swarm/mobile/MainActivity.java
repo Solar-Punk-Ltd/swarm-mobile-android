@@ -174,6 +174,9 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             if (!started) {
                 downloadFragment.setDownloading(false);
             }
+        } else {
+            Log.w("MainActivity", "startDownload() called but service is not bound");
+            downloadFragment.setDownloading(false);
         }
     }
 
