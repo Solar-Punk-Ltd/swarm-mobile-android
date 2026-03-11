@@ -78,13 +78,14 @@ public class ConfigActivity extends AppCompatActivity {
             rpcEndpointInput.setText("");
             rpcEndpointLayout.setAlpha(0.5f);
         } else {
+
             rpcEndpointLayout.setEnabled(true);
             rpcEndpointInput.setEnabled(true);
             rpcEndpointLayout.setAlpha(1.0f);
 
-            if (rpcEndpointInput.getText() == null || rpcEndpointInput.getText().toString().trim().isEmpty()) {
-                rpcEndpointInput.setText(getString(R.string.default_rpc_endpoint));
-            }
+            var savedRpcEndpoint = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .getString("rpc_endpoint",  getString(R.string.default_rpc_endpoint));
+            rpcEndpointInput.setText(savedRpcEndpoint);
         }
     }
 
@@ -97,11 +98,17 @@ public class ConfigActivity extends AppCompatActivity {
 
         String rpcEndpoint = (nodeMode == NodeMode.ULTRA_LIGHT) ? "" : Objects.requireNonNull(rpcEndpointInput.getText()).toString().trim();
 
-        getSharedPreferences("app_prefs", MODE_PRIVATE)
+        var prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .edit()
                 .putString("node_mode", nodeMode.getDisplayName())
-                .putString("password", password)
-                .apply();
+                .putString("password", password);
+
+
+        if (!rpcEndpoint.isEmpty()) {
+            prefs.putString("rpc_endpoint", rpcEndpoint);
+        }
+
+        prefs.apply();
 
         Intent intent = new Intent(ConfigActivity.this, MainActivity.class);
 
