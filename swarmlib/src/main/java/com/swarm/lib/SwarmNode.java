@@ -164,13 +164,13 @@ public class SwarmNode {
                 try {
                     var result = mobileNode.download(hash);
 
-                    var file = result.getFile();
-
-                    if (file == null) {
-                        Logger.getLogger(this.getClass().getName()).info("Download failed: file is null for hash " + hash);
+                    if (result == null || result.getFile() == null) {
+                        Logger.getLogger(this.getClass().getName()).info("File not found for hash on Swarm: " + hash);
                         notifyHashNotFound();
                         return;
                     }
+
+                    var file = result.getFile();
 
                     notifyDownloadSuccess(file.getName(), file.getData(), result.getStats().getRateInMBps());
                 } catch (Exception e) {
