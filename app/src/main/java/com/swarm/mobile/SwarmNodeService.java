@@ -25,6 +25,8 @@ public class SwarmNodeService extends Service {
     private static final String TAG = "SwarmNodeService";
     private static final String CHANNEL_ID = "SwarmNodeServiceChannel";
     private static final int NOTIFICATION_ID = 1;
+    private static final int TWO_SECONDS = 2000;
+
 
     private SwarmNode swarmNode;
     private final IBinder binder = new SwarmNodeBinder();
@@ -124,7 +126,7 @@ public class SwarmNodeService extends Service {
         if (runner != null) {
             runner.interrupt();
             try {
-                runner.join(2000); // wait up to 2 s for the thread to exit
+                runner.join(TWO_SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
