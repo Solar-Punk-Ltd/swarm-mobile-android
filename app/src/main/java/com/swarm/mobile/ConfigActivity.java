@@ -11,6 +11,7 @@ import android.widget.AutoCompleteTextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -22,6 +23,7 @@ public class ConfigActivity extends AppCompatActivity {
     private TextInputEditText passwordInput;
     private TextInputEditText rpcEndpointInput;
     private TextInputLayout rpcEndpointLayout;
+    private MaterialCheckBox cachingEnabledCheckbox;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -33,6 +35,7 @@ public class ConfigActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInput);
         rpcEndpointInput = findViewById(R.id.rpcEndpointInput);
         rpcEndpointLayout = findViewById(R.id.rpcEndpointLayout);
+        cachingEnabledCheckbox = findViewById(R.id.cachingEnabledCheckbox);
         MaterialButton startButton = findViewById(R.id.startButton);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -46,6 +49,9 @@ public class ConfigActivity extends AppCompatActivity {
 
         var savedPassword = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("password", "");
         passwordInput.setText(savedPassword);
+
+        var savedCachingEnabled = getSharedPreferences("app_prefs", MODE_PRIVATE).getBoolean("caching_enabled", false);
+        cachingEnabledCheckbox.setChecked(savedCachingEnabled);
 
 
         nodeModeSpinner.addTextChangedListener(new TextWatcher() {
@@ -98,10 +104,13 @@ public class ConfigActivity extends AppCompatActivity {
 
         String rpcEndpoint = (nodeMode == NodeMode.ULTRA_LIGHT) ? "" : Objects.requireNonNull(rpcEndpointInput.getText()).toString().trim();
 
+        boolean cachingEnabled = cachingEnabledCheckbox.isChecked();
+
         var prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 .edit()
                 .putString("node_mode", nodeMode.getDisplayName())
-                .putString("password", password);
+                .putString("password", password)
+                .putBoolean("caching_enabled", cachingEnabled);
 
 
         if (!rpcEndpoint.isEmpty()) {
@@ -115,6 +124,7 @@ public class ConfigActivity extends AppCompatActivity {
         intent.putExtra(IntentKeys.NODE_MODE, nodeMode.name());
         intent.putExtra(IntentKeys.PASSWORD, password);
         intent.putExtra(IntentKeys.RPC_ENDPOINT, rpcEndpoint);
+        intent.putExtra(IntentKeys.CACHE_ENABLED, cachingEnabled);
         startActivity(intent);
     }
 }

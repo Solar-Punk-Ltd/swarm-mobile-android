@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
     private String password;
     private String rpcEndpoint;
     private String nodeMode;
+    private boolean cacheEnabled;
 
     private NodeFragment nodeFragment;
     private DownloadFragment downloadFragment;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
             password = intent.getStringExtra(IntentKeys.PASSWORD);
             rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
             nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
+            cacheEnabled = intent.getBooleanExtra(IntentKeys.CACHE_ENABLED, false);
         }
 
         nodeFragment = new NodeFragment(NodeMode.valueOf(nodeMode));
@@ -86,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements SwarmNodeListener
         serviceIntent.putExtra(IntentKeys.PASSWORD, password);
         serviceIntent.putExtra(IntentKeys.RPC_ENDPOINT, rpcEndpoint);
         serviceIntent.putExtra(IntentKeys.NODE_MODE, nodeMode);
+        serviceIntent.putExtra(IntentKeys.CACHE_ENABLED, cacheEnabled);
 
         // startForegroundService is safe to call even if the service is already running —
         // onStartCommand returns START_STICKY and guards against double-init with a null check.

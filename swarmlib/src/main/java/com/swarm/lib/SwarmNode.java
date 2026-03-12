@@ -22,22 +22,27 @@ import mobile.MobileNode;
 import mobile.MobileNodeOptions;
 import mobile.StampData;
 
+
 public class SwarmNode {
+
+    private static final Long DEFAULT_VALUE = 32 * 1024 * 1024L;
     private NodeInfo nodeInfo;
     private MobileNode mobileNode;
     private final List<SwarmNodeListener> listeners;
     private final String dataDir;
     private final String password;
     private final String rpcEndpoint;
-    private final Boolean lightModeEnabled;
+    private final boolean lightModeEnabled;
+    private final boolean cacheEnabled;
 
 
-    public SwarmNode(String dataDir, String password, String rpcEndpoint, Boolean lightModeEnabled) {
+    public SwarmNode(String dataDir, String password, String rpcEndpoint, boolean lightModeEnabled, boolean cacheEnabled) {
         this.listeners = new ArrayList<>();
         this.dataDir = dataDir;
         this.password = password;
         this.rpcEndpoint = rpcEndpoint;
         this.lightModeEnabled = lightModeEnabled;
+        this.cacheEnabled = cacheEnabled;
         this.nodeInfo = new NodeInfo("", "", "", NodeStatus.Started);
     }
 
@@ -69,8 +74,10 @@ public class SwarmNode {
     public void stopNode() throws Exception {
         updateNodeInfo("", "", "", NodeStatus.Stopped);
         this.listeners.clear();
-        this.mobileNode.shutdown();
-        this.mobileNode = null;
+        if (this.mobileNode != null) {
+            this.mobileNode.shutdown();
+            this.mobileNode = null;
+        }
         notifyNodeInfoChanged();
     }
 
@@ -304,12 +311,12 @@ public class SwarmNode {
         options.setUsePostageSnapshot(false);
         options.setMainnet(true);
         options.setNetworkID(1);
-        options.setCacheCapacity(32 * 1024 * 1024);
         options.setDBOpenFilesLimit(50);
-        options.setDBWriteBufferSize(32 * 1024 * 1024);
-        options.setDBBlockCacheCapacity(32 * 1024 * 1024);
+        options.setDBWriteBufferSize(DEFAULT_VALUE);
+        options.setDBBlockCacheCapacity(DEFAULT_VALUE);
         options.setDBDisableSeeksCompaction(false);
         options.setRetrievalCaching(true);
+        options.setCacheCapacity(cacheEnabled ? DEFAULT_VALUE : 0);
 
         return options;
     }
