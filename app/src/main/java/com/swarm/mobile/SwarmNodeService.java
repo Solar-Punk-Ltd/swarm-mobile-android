@@ -25,9 +25,13 @@ public class SwarmNodeService extends Service {
     private static final String TAG = "SwarmNodeService";
     private static final String CHANNEL_ID = "SwarmNodeServiceChannel";
     private static final int NOTIFICATION_ID = 1;
+    private static final int TWO_SECONDS = 2000;
+
 
     private SwarmNode swarmNode;
     private final IBinder binder = new SwarmNodeBinder();
+
+    private Thread runner;
 
     public class SwarmNodeBinder extends Binder {
         SwarmNodeService getService() {
@@ -51,7 +55,7 @@ public class SwarmNodeService extends Service {
             startForeground(NOTIFICATION_ID, createNotification("Starting Swarm Node..."));
         } catch (Exception e) {
             Log.e(TAG, "Failed to start foreground service", e);
-            stopSelf();
+            stop();
             return START_NOT_STICKY;
         }
 
@@ -64,48 +68,79 @@ public class SwarmNodeService extends Service {
             if (dataDir != null && password != null && rpcEndpoint != null) {
                 swarmNode = new SwarmNode(dataDir, password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
 
-                new Thread(() -> {
+                runner = new Thread(() -> {
                     try {
                         swarmNode.start();
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to start SwarmNode", e);
-                        stopSelf();
+                        throw e;
                     }
-                }).start();
+                });
+                runner.start();
             } else {
                 Log.w(TAG, "Missing required parameters to start SwarmNode");
-                stopSelf();
+                stop();
+                return START_NOT_STICKY;
             }
         } else {
-            // OS restarted the service after a kill (START_STICKY) but has no intent —
-            // we can't restart the node without credentials, so stop cleanly.
             Log.w(TAG, "onStartCommand called with null intent (OS restart) — stopping service");
-            stopSelf();
+            stop();
             return START_NOT_STICKY;
         }
 
         return START_STICKY;
     }
 
-    @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
+    public void onTaskRemoved(Intent rootIntent) {
+        Log.i(TAG, "Stopping SwarmNodeService onTaskRemoved");
+        super.onTaskRemoved(rootIntent);
+
+        stop();
+
+        Log.i(TAG, "Killing process to ensure clean Go runtime state for next start");
+        android.os.Process.killProcess(android.os.Process.myPid()); // without this the Go runtime may be left in a bad state and fail to start on next service start
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "Stopping SwarmNodeService");
+        Log.i(TAG, "Stopping SwarmNodeService onDestroy");
         super.onDestroy();
+
+        stop();
+    }
+
+    private void stop() {
+        Log.i(TAG, "Stopping Bee node gracefully...");
         if (swarmNode != null) {
             try {
                 swarmNode.stopNode();
                 Log.i(TAG, "SwarmNode stopped successfully");
             } catch (Exception e) {
-                Log.e(TAG, "Failed to stop SwarmNode", e);
+                Log.e(TAG, "Failed to stop SwarmNode in onTaskRemoved", e);
+            }
+            swarmNode = null;
+        }
+
+        Log.i(TAG, "Stopping Bee node runner thread...");
+        if (runner != null) {
+            runner.interrupt();
+            try {
+                runner.join(TWO_SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
-        swarmNode = null;
+
+        Log.i(TAG, "Runner thread finished, stopping service");
+        runner = null;
+        stopSelf();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
     }
 
     public void getAllStamps(StampListener listener) {
@@ -115,8 +150,7 @@ public class SwarmNodeService extends Service {
     }
 
     public void buyStamp(String amount, String depth, String label, boolean immutable, StampListener listener) {
-        Log.i(TAG, "buyStamp() called: amount=" + amount + ", depth=" + depth
-                + ", label=" + label + ", immutable=" + immutable);
+        Log.i(TAG, "buyStamp() called: amount=" + amount + ", depth=" + depth + ", label=" + label + ", immutable=" + immutable);
         if (swarmNode != null) {
             swarmNode.buyStamp(amount, depth, label, immutable, listener);
         } else {
@@ -126,12 +160,8 @@ public class SwarmNodeService extends Service {
 
     private volatile boolean uploading = false;
 
-    public boolean upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp,
-                          UploadListener uploadListener
-    ) {
-        Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType
-                + ", uri=" + (fileUri != null ? fileUri.toString() : "null")
-                + ", stamp=" + (stamp != null ? stamp.toString() : "null"));
+    public boolean upload(Uri fileUri, ContentResolver contentResolver, String filename, String contentType, Stamp stamp, UploadListener uploadListener) {
+        Log.i(TAG, "upload() called: filename=" + filename + ", contentType=" + contentType + ", uri=" + (fileUri != null ? fileUri.toString() : "null") + ", stamp=" + (stamp != null ? stamp.toString() : "null"));
         if (swarmNode != null && !uploading) {
             uploading = true;
             swarmNode.upload(fileUri, contentResolver, filename, contentType, stamp, uploadListener);
@@ -187,11 +217,7 @@ public class SwarmNodeService extends Service {
 
 
     private void createNotificationChannel() {
-        NotificationChannel serviceChannel = new NotificationChannel(
-                CHANNEL_ID,
-                "Swarm Node Service Channel",
-                NotificationManager.IMPORTANCE_LOW
-        );
+        NotificationChannel serviceChannel = new NotificationChannel(CHANNEL_ID, "Swarm Node Service Channel", NotificationManager.IMPORTANCE_LOW);
         NotificationManager manager = getSystemService(NotificationManager.class);
         if (manager != null) {
             manager.createNotificationChannel(serviceChannel);
@@ -200,18 +226,8 @@ public class SwarmNodeService extends Service {
 
     private Notification createNotification(@SuppressWarnings("SameParameterValue") String message) {
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                notificationIntent,
-                PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Swarm Node")
-                .setContentText(message)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .build();
+        return new NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle("Swarm Node").setContentText(message).setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent).build();
     }
 }
