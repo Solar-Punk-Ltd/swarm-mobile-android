@@ -64,6 +64,9 @@
     <string name="remove_record">Remove</string>
     <string name="toggle_full_text">Copy to clipboard</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="share_hash">Share hash link</string>
+    <string name="hash_copied">Hash copied to clipboard</string>
+    <string name="hash_link_copied">Link copied to clipboard</string>
     <string name="stampId">ID:</string>
     <string name="hash">Hash:</string>
     <string name="stamp_id">Stamp ID:</string>
