@@ -64,9 +64,10 @@ public class SwarmNodeService extends Service {
             String password = intent.getStringExtra(IntentKeys.PASSWORD);
             String rpcEndpoint = intent.getStringExtra(IntentKeys.RPC_ENDPOINT);
             var nodeMode = intent.getStringExtra(IntentKeys.NODE_MODE);
+            boolean cacheEnabled = intent.getBooleanExtra(IntentKeys.CACHE_ENABLED, false);
 
             if (dataDir != null && password != null && rpcEndpoint != null) {
-                swarmNode = new SwarmNode(dataDir, password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode));
+                swarmNode = new SwarmNode(dataDir, password, rpcEndpoint, NodeMode.LIGHT.name().equals(nodeMode), cacheEnabled);
 
                 runner = new Thread(() -> {
                     try {
