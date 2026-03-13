@@ -22,6 +22,18 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
+            <ImageButton
+                android:id="@+id/shareButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_share"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/share_hash"
+                app:tint="@color/swarm_orange"
+                android:scaleType="fitCenter"
+                android:padding="4dp" />
+
             <TextView
                 android:id="@+id/recordFilename"
                 android:layout_width="0dp"
@@ -59,7 +71,7 @@
 
             <com.swarm.mobile.views.TruncatedTextView
                 android:id="@+id/recordHash"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
