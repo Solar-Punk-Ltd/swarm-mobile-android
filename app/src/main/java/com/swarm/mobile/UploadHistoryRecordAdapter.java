@@ -14,13 +14,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.swarm.mobile.utils.Constants;
 import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.List;
 
 public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHistoryRecordAdapter.UploadHistoryRecordViewHolder> {
-
-    private static final String BZZ_LINK_BASE = "https://bzz.link/bzz/";
 
     public interface OnRemoveListener {
         void onRemove(int position);
@@ -115,7 +114,7 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
 
         private void shareHash(View v, String hash) {
             if (hash == null || hash.isEmpty()) return;
-            String link = BZZ_LINK_BASE + hash;
+            String link = Constants.BZZ_LINK_BASE + hash;
 
             ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
             clipboard.setPrimaryClip(ClipData.newPlainText("Swarm Link", link));
