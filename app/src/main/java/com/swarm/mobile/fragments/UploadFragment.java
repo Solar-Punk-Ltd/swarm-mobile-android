@@ -21,8 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.checkbox.MaterialCheckBox;
-import com.google.android.material.textfield.TextInputEditText;
 import com.swarm.interfaces.StampListener;
 import com.swarm.interfaces.UploadListener;
 import com.swarm.lib.NodeInfo;
@@ -33,8 +31,10 @@ import com.swarm.mobile.StampAdapter;
 import com.swarm.mobile.SwarmNodeService;
 import com.swarm.mobile.UploadHistoryRecord;
 import com.swarm.mobile.UploadHistoryRecordAdapter;
+import com.swarm.mobile.dialogs.stamp.CreateStampDialog;
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.storage.UploadHistoryStorage;
+import com.swarm.mobile.utils.SwarmPostageStampUtils;
 import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.ArrayList;
@@ -160,8 +160,6 @@ public class UploadFragment extends Fragment implements StampListener,
         });
 
 
-
-
         uploadButton.setOnClickListener(v -> {
             if (swarmNodeService == null) {
                 Log.e("UploadFragment", "SwarmNodeService is null, cannot perform upload");
@@ -229,45 +227,11 @@ public class UploadFragment extends Fragment implements StampListener,
 
     private void showCreateStampDialog() {
         if (getContext() == null) return;
-
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_stamp, null);
-
-        TextInputEditText amountInput = dialogView.findViewById(R.id.amountInput);
-        TextInputEditText depthInput = dialogView.findViewById(R.id.depthInput);
-        TextInputEditText labelInput = dialogView.findViewById(R.id.labelInput);
-        MaterialCheckBox immutableCheckbox = dialogView.findViewById(R.id.immutableCheckbox);
-
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setView(dialogView)
-                .create();
-
-        dialogView.findViewById(R.id.cancelButton).setOnClickListener(v -> dialog.dismiss());
-
-        dialogView.findViewById(R.id.createButton).setOnClickListener(v -> {
-            String amountStr = amountInput.getText() != null ? amountInput.getText().toString() : "";
-            String depthStr = depthInput.getText() != null ? depthInput.getText().toString() : "";
-            String label = labelInput.getText() != null ? labelInput.getText().toString() : "";
-            boolean immutable = immutableCheckbox.isChecked();
-
-            if (amountStr.isEmpty() || depthStr.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in amount and depth", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                if (swarmNodeService == null) return;
-                swarmNodeService.buyStamp(amountStr, depthStr, label, immutable, this);
-                Toast.makeText(getContext(),
-                        "Creating stamp. Please wait...",
-                        Toast.LENGTH_LONG).show();
-
-                dialog.dismiss();
-            } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
-            }
+        CreateStampDialog.show(getContext(), (amount, depth, label, immutable) -> {
+            if (swarmNodeService == null) return;
+//            swarmNodeService.buyStamp(amount, depth, label, immutable, this);
+            Toast.makeText(getContext(), "Creating stamp. Please wait...", Toast.LENGTH_LONG).show();
         });
-
-        dialog.show();
     }
 
     public void updateNodeInfo(NodeInfo nodeInfo) {
@@ -367,12 +331,22 @@ public class UploadFragment extends Fragment implements StampListener,
         selectedStampBatchId.setText(selectedStamp.batchID());
         selectedStampBatchId.setMaxLength(20);
 
-        String details = String.format(Locale.US, """
-                        Capacity (%s): %s
-                        Depth: %d""",
+        long amount = 0;
+        try {
+            amount = Long.parseLong(selectedStamp.amount());
+        } catch (NumberFormatException ignored) {
+        }
+        int depth = selectedStamp.depth() & 0xFF; // byte → unsigned int
+
+        String capacitySummary = SwarmPostageStampUtils.formatCapacitySummary(depth);
+        String ttlSummary = SwarmPostageStampUtils.formatTTLSummary(amount, SwarmPostageStampUtils.DEFAULT_PRICE_PER_BLOCK);
+
+        String details = String.format(Locale.US,
+                "Capacity (%s): %s\nTTL: %s\nDepth: %d",
                 selectedStamp.immutable() ? "immutable" : "mutable",
-                selectedStamp.amount(),
-                selectedStamp.depth());
+                capacitySummary,
+                ttlSummary,
+                depth);
 
         selectedStampDetails.setText(details);
     }

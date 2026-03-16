@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.swarm.lib.Stamp;
+import com.swarm.mobile.utils.SwarmPostageStampUtils;
+
 import com.swarm.mobile.interfaces.OnStampClickListener;
 import com.swarm.mobile.views.TruncatedTextView;
 
@@ -67,10 +69,16 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
             stampBatchIdView.setText(batchIdHex);
             stampBatchIdView.setMaxLength(20);
 
-            String details = String.format(Locale.US, "Capacity (%s): %s \nDepth: %d",
-                stamp.immutable() ? "immutable" : "mutable",
-                stamp.amount(),
-                stamp.depth());
+            long amount = 0;
+            try { amount = Long.parseLong(stamp.amount()); } catch (NumberFormatException ignored) {}
+            int depth = stamp.depth() & 0xFF;
+
+            String details = String.format(Locale.US,
+                    "Capacity (%s): %s\nTTL: %s\nDepth: %d",
+                    stamp.immutable() ? "immutable" : "mutable",
+                    SwarmPostageStampUtils.formatCapacitySummary(depth),
+                    SwarmPostageStampUtils.formatTTLSummary(amount, SwarmPostageStampUtils.DEFAULT_PRICE_PER_BLOCK),
+                    depth);
 
             stampDetailsText.setText(details);
 
@@ -81,15 +89,6 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
             });
         }
 
-        private String bytesToHex(byte[] bytes) {
-            if (bytes == null || bytes.length == 0) {
-                return "";
-            }
-            StringBuilder sb = new StringBuilder(bytes.length * 2);
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        }
+
     }
 }
