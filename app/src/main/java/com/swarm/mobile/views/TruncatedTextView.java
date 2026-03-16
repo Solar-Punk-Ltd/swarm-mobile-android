@@ -17,10 +17,10 @@ import com.swarm.mobile.utils.StringUtils;
 
 public class TruncatedTextView extends LinearLayout {
 
+    private LinearLayout hashContainer;
     private TextView textView;
-    private ImageButton toggleButton;
+    private ImageButton copyButton;
     private String fullText = "";
-    private boolean isExpanded = false;
     private int maxLength = 20;
     private Context context;
 
@@ -43,17 +43,18 @@ public class TruncatedTextView extends LinearLayout {
         this.context = context;
         LayoutInflater.from(context).inflate(R.layout.view_truncated_text, this, true);
 
+        hashContainer = findViewById(R.id.hashContainer);
         textView = findViewById(R.id.truncatedText);
-        toggleButton = findViewById(R.id.toggleButton);
+        copyButton = findViewById(R.id.copyButton);
 
-        toggleButton.setOnClickListener(v -> copyToClipboard());
+        hashContainer.setOnClickListener(v -> copyHashToClipboard());
+        copyButton.setOnClickListener(v -> copyHashToClipboard());
 
         updateDisplay();
     }
 
     public void setText(String text) {
         this.fullText = text != null ? text : "";
-        this.isExpanded = false;
         updateDisplay();
     }
 
@@ -66,41 +67,31 @@ public class TruncatedTextView extends LinearLayout {
         return fullText;
     }
 
-    private void copyToClipboard() {
-        if (fullText.isEmpty()) {
-            return;
-        }
-
+    private void copyHashToClipboard() {
+        if (fullText.isEmpty()) return;
         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("Copied Text", fullText);
+        ClipData clip = ClipData.newPlainText("Swarm Hash", fullText);
         clipboard.setPrimaryClip(clip);
-
-        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.hash_copied, Toast.LENGTH_SHORT).show();
     }
 
     private void updateDisplay() {
         if (fullText.isEmpty()) {
+            hashContainer.setBackground(null);
+            hashContainer.setClickable(false);
             textView.setText("");
-            toggleButton.setVisibility(GONE);
+            copyButton.setVisibility(GONE);
             return;
         }
 
+        hashContainer.setBackground(context.getDrawable(R.drawable.hash_border_background));
+        hashContainer.setClickable(true);
+        copyButton.setVisibility(VISIBLE);
+
         if (fullText.length() <= maxLength) {
             textView.setText(fullText);
-            toggleButton.setVisibility(GONE);
         } else {
-            String truncated = StringUtils.ellipsizeMiddle(fullText, maxLength);
-            textView.setText(truncated);
-            toggleButton.setVisibility(VISIBLE);
+            textView.setText(StringUtils.ellipsizeMiddle(fullText, maxLength));
         }
-    }
-
-    public void setExpanded(boolean expanded) {
-        this.isExpanded = expanded;
-        updateDisplay();
-    }
-
-    public boolean isExpanded() {
-        return isExpanded;
     }
 }

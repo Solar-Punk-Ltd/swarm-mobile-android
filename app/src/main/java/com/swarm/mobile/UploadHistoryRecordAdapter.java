@@ -1,15 +1,20 @@
 package com.swarm.mobile;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.swarm.mobile.utils.Constants;
 import com.swarm.mobile.views.TruncatedTextView;
 
 import java.util.List;
@@ -63,6 +68,7 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
         private final TextView stampLabelTextView;
         private final TruncatedTextView stampIdTextView;
         final ImageButton removeButton;
+        final ImageButton shareButton;
 
         public UploadHistoryRecordViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -73,6 +79,7 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
             stampLabelTextView = itemView.findViewById(R.id.recordStampLabel);
             stampIdTextView = itemView.findViewById(R.id.recordStampId);
             removeButton = itemView.findViewById(R.id.removeRecordButton);
+            shareButton = itemView.findViewById(R.id.shareButton);
         }
 
         @SuppressLint("SetTextI18n")
@@ -101,7 +108,24 @@ public class UploadHistoryRecordAdapter extends RecyclerView.Adapter<UploadHisto
 
             stampIdTextView.setText(record.stampId());
             stampIdTextView.setMaxLength(20);
+
+            shareButton.setOnClickListener(v -> shareHash(v, record.hash()));
+        }
+
+        private void shareHash(View v, String hash) {
+            if (hash == null || hash.isEmpty()) return;
+            String link = Constants.BZZ_LINK_BASE + hash;
+
+            ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText("Swarm Link", link));
+            Toast.makeText(v.getContext(), R.string.hash_link_copied, Toast.LENGTH_SHORT).show();
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, link);
+            Intent chooser = Intent.createChooser(shareIntent, v.getContext().getString(R.string.share_hash));
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            v.getContext().startActivity(chooser);
         }
     }
 }
-

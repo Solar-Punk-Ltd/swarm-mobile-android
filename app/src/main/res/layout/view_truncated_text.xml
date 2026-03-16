@@ -1,31 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/hashContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/hash_border_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:gravity="center_vertical">
+    android:paddingStart="8dp"
+    android:paddingTop="2dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="2dp">
+
 
     <TextView
         android:id="@+id/truncatedText"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="12sp"
+        android:contentDescription="@string/copy_to_clipboard"
         android:fontFamily="monospace"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textIsSelectable="true" />
+        android:textColor="@color/text_primary"
+        android:textSize="12sp" />
 
     <ImageButton
-        android:id="@+id/toggleButton"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:id="@+id/copyButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_content_copy"
-        app:tint="@color/swarm_orange"
         android:contentDescription="@string/copy_to_clipboard"
+        android:padding="2dp"
         android:scaleType="fitCenter"
-        android:padding="4dp" />
+        android:src="@drawable/ic_content_copy"
+        app:tint="@color/swarm_orange" />
+
 
 </LinearLayout>
+
+
+
+
+
