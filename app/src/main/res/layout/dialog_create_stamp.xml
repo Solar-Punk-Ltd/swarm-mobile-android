@@ -216,6 +216,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/stamp_immutable"
+            android:checked="true"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="20dp" />
 
