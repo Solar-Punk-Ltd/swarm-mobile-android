@@ -229,7 +229,7 @@ public class UploadFragment extends Fragment implements StampListener,
         if (getContext() == null) return;
         CreateStampDialog.show(getContext(), (amount, depth, label, immutable) -> {
             if (swarmNodeService == null) return;
-//            swarmNodeService.buyStamp(amount, depth, label, immutable, this);
+            swarmNodeService.buyStamp(amount, depth, label, immutable, this);
             Toast.makeText(getContext(), "Creating stamp. Please wait...", Toast.LENGTH_LONG).show();
         });
     }
