@@ -85,14 +85,14 @@ public class SwarmPostageStampUtils {
 
     /**
      * Returns a single-line capacity summary for display in the stamp creation dialog.
-     * E.g. "Theoretical: ~4.29 GB / Effective: ~628.91 MB"
+     * E.g. "Effective: ~628.91 MB\nTheoretical: ~4.29 GB"
      */
     public static String formatCapacitySummary(int depth) {
         long theoretical = calculateTheoreticalCapacity(depth);
         long effective   = calculateEffectiveCapacity(depth);
         return String.format(Locale.US,
-                "Theoretical: ~%s / Effective: ~%s",
-                formatSize(theoretical), formatSize(effective));
+                "Effective: ~%s\nTheoretical: ~%s",
+                formatSize(effective), formatSize(theoretical));
     }
 
     /**

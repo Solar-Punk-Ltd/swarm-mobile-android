@@ -156,9 +156,20 @@ public class SwarmPostageStampUtilsTest {
 
     @Test
     public void formatCapacitySummary_depth20KnownValues() {
-        // theoretical ≈ 4.29 GB, effective ≈ 672.16 MB
+        // effective comes first on line 1, theoretical on line 2
+        // effective ≈ 672.16 MB, theoretical ≈ 4.29 GB
         String summary = SwarmPostageStampUtils.formatCapacitySummary(20);
+        assertTrue("expected effective MB value, got: " + summary, summary.contains("MB"));
         assertTrue("expected ~4.29 GB theoretical, got: " + summary, summary.contains("4.29 GB"));
+        // Effective should appear before Theoretical in the string
+        assertTrue("Effective should come before Theoretical",
+                summary.indexOf("Effective") < summary.indexOf("Theoretical"));
+        // Should be two lines separated by newline
+        assertTrue("should contain newline separator", summary.contains("\n"));
+        String[] lines = summary.split("\n");
+        assertEquals("should have exactly 2 lines", 2, lines.length);
+        assertTrue("first line should be Effective", lines[0].startsWith("Effective:"));
+        assertTrue("second line should be Theoretical", lines[1].startsWith("Theoretical:"));
     }
 
     // ────────────────────────────────────────────────────────────────────────
