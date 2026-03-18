@@ -195,37 +195,6 @@
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <!-- Calculated amount preview -->
-        <LinearLayout
-            android:id="@+id/ttlPreviewCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@color/bg_elevated"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:layout_marginBottom="12dp"
-            android:visibility="visible">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/stamp_calculated_amount_label"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:id="@+id/ttlPreviewText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="13sp"
-                android:textColor="@color/swarm_orange"
-                android:textStyle="bold" />
-        </LinearLayout>
-
         <!-- Label -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

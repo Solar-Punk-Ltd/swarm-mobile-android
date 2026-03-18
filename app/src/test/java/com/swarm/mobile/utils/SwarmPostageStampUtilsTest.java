@@ -142,58 +142,6 @@ public class SwarmPostageStampUtilsTest {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // formatTTL
-    // ────────────────────────────────────────────────────────────────────────
-
-    @Test
-    public void formatTTL_zerOrNegativeReturnsZeroSeconds() {
-        assertEquals("0 seconds", SwarmPostageStampUtils.formatTTL(0));
-        assertEquals("0 seconds", SwarmPostageStampUtils.formatTTL(-10));
-    }
-
-    @Test
-    public void formatTTL_lessThanOneMinute() {
-        // < 60 s still shows "1 min" (minimum display)
-        assertEquals("1 min", SwarmPostageStampUtils.formatTTL(30));
-    }
-
-    @Test
-    public void formatTTL_exactMinutes() {
-        assertEquals("3 min", SwarmPostageStampUtils.formatTTL(180));
-    }
-
-    @Test
-    public void formatTTL_hoursAndMinutes() {
-        // 3h 30min = 12 600 s
-        assertEquals("3 hrs 30 min", SwarmPostageStampUtils.formatTTL(12_600));
-    }
-
-    @Test
-    public void formatTTL_exactHours() {
-        assertEquals("2 hrs", SwarmPostageStampUtils.formatTTL(7_200));
-    }
-
-    @Test
-    public void formatTTL_daysOnly() {
-        // exactly 5 days
-        assertEquals("5 days", SwarmPostageStampUtils.formatTTL(5 * 86_400));
-    }
-
-    @Test
-    public void formatTTL_daysAndHours() {
-        // 5 days + 3 hours
-        assertEquals("5 days 3 hrs", SwarmPostageStampUtils.formatTTL(5 * 86_400 + 3 * 3_600));
-    }
-
-    @Test
-    public void formatTTL_mainnetExample() {
-        // amount=5 666 666 666, price=62 681 → ttl≈452 025 s ≈ 5 days 5 hrs
-        long ttl = SwarmPostageStampUtils.calculateTTLSeconds(5_666_666_666L, 62_681L);
-        String result = SwarmPostageStampUtils.formatTTL(ttl);
-        assertTrue("Expected days in result, got: " + result, result.contains("days"));
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
     // formatCapacitySummary
     // ────────────────────────────────────────────────────────────────────────
 
@@ -252,20 +200,6 @@ public class SwarmPostageStampUtilsTest {
     @Test
     public void calculateAmountFromTTL_zeroTtlReturnsZero() {
         assertEquals(0L, SwarmPostageStampUtils.calculateAmountFromTTL(0, 62_681L));
-    }
-
-    // ────────────────────────────────────────────────────────────────────────
-
-    @Test
-    public void formatTTLSummary_containsPLUR() {
-        String summary = SwarmPostageStampUtils.formatTTLSummary(5_666_666_666L, 62_681L);
-        assertTrue("should mention PLUR/block", summary.contains("PLUR/block"));
-    }
-
-    @Test
-    public void formatTTLSummary_containsTilde() {
-        String summary = SwarmPostageStampUtils.formatTTLSummary(5_666_666_666L, 62_681L);
-        assertTrue("should start with ~", summary.startsWith("~"));
     }
 
 }

@@ -2,7 +2,6 @@ package com.swarm.mobile.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 
@@ -19,6 +18,7 @@ public class SwarmPostageStampUtils {
      * Used as a fallback when the live price is unavailable.
      * ~62681 PLUR as observed on mainnet (March 2026).
      */
+    // TODO query this price from the given RPC
     public static final long DEFAULT_PRICE_PER_BLOCK = 62681L;
 
     /**
@@ -27,7 +27,7 @@ public class SwarmPostageStampUtils {
      * Derived from the bee-js reference implementation:
      * <a href="https://github.com/ethersphere/bee-js/blob/master/src/utils/stamps.ts">...</a>
      */
-    private static final Map<Integer, Double> UTILIZATION_RATES = Map.ofEntries(
+    private static final Map<Integer, Double> UTILIZATION_RATES_WITHOUT_REDUNDANCY = Map.ofEntries(
             Map.entry(17, 0.0001), Map.entry(18, 0.0061), Map.entry(19, 0.0509),
             Map.entry(20, 0.1565), Map.entry(21, 0.3027), Map.entry(22, 0.4499),
             Map.entry(23, 0.5803), Map.entry(24, 0.6848), Map.entry(25, 0.7677),
@@ -50,11 +50,11 @@ public class SwarmPostageStampUtils {
      * Uses empirically measured utilization rates per depth.
      */
     public static long calculateEffectiveCapacity(int depth) {
-        if (!UTILIZATION_RATES.containsKey(depth)) {
+        if (!UTILIZATION_RATES_WITHOUT_REDUNDANCY.containsKey(depth)) {
             throw new RuntimeException("Key depth " + depth + " not found in UTILIZATION_RATES map. Please update the map with the appropriate utilization rate for this depth.");
         }
 
-        Double rateBoxed = UTILIZATION_RATES.get(depth);
+        Double rateBoxed = UTILIZATION_RATES_WITHOUT_REDUNDANCY.get(depth);
         double rate = (rateBoxed != null) ? rateBoxed: 0.0;
 
         return (long) (calculateTheoreticalCapacity(depth) * rate);
@@ -84,29 +84,6 @@ public class SwarmPostageStampUtils {
     }
 
     /**
-     * Formats a TTL in seconds into a human-readable string (e.g. "5 days", "3 hours").
-     */
-    public static String formatTTL(long ttlSeconds) {
-        if (ttlSeconds <= 0) return "0 seconds";
-        Duration d = Duration.ofSeconds(ttlSeconds);
-        long days = d.toDays();
-        long hours = d.toHours() % 24;
-        long minutes = d.toMinutes() % 60;
-
-        if (days > 0) {
-            return hours > 0
-                    ? String.format(Locale.US, "%d days %d hrs", days, hours)
-                    : String.format(Locale.US, "%d days", days);
-        }
-        if (hours > 0) {
-            return minutes > 0
-                    ? String.format(Locale.US, "%d hrs %d min", hours, minutes)
-                    : String.format(Locale.US, "%d hrs", hours);
-        }
-        return String.format(Locale.US, "%d min", Math.max(1, minutes));
-    }
-
-    /**
      * Returns a single-line capacity summary for display in the stamp creation dialog.
      * E.g. "Theoretical: ~4.29 GB / Effective: ~628.91 MB"
      */
@@ -116,18 +93,6 @@ public class SwarmPostageStampUtils {
         return String.format(Locale.US,
                 "Theoretical: ~%s / Effective: ~%s",
                 formatSize(theoretical), formatSize(effective));
-    }
-
-    /**
-     * Returns a single-line TTL summary for display in the stamp creation dialog.
-     * E.g., "~5 days (at 62681 PLUR/block)."
-     */
-    public static String formatTTLSummary(long amount, long pricePerBlock) {
-        long ttlSeconds = calculateTTLSeconds(amount, pricePerBlock);
-        return String.format(Locale.US,
-                "~%s (at %s PLUR/block)",
-                formatTTL(ttlSeconds),
-                String.format(Locale.US, "%,d", pricePerBlock));
     }
 
     /**
@@ -154,8 +119,7 @@ public class SwarmPostageStampUtils {
     public static BigDecimal calculateIndicativePriceXBZZ(long amount, int depth) {
         BigDecimal amountBD  = BigDecimal.valueOf(amount);
         BigDecimal chunks    = BigDecimal.valueOf(1L << depth);
-        BigDecimal plurPerXBzz = new BigDecimal("10000000000000000"); // 10^16
-        return amountBD.multiply(chunks).divide(plurPerXBzz, 4, RoundingMode.HALF_UP);
+        return amountBD.multiply(chunks).divide(NumberUtils.PLUR_PER_XBZZ, 4, RoundingMode.HALF_UP);
     }
 
     /**

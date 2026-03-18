@@ -331,21 +331,14 @@ public class UploadFragment extends Fragment implements StampListener,
         selectedStampBatchId.setText(selectedStamp.batchID());
         selectedStampBatchId.setMaxLength(20);
 
-        long amount = 0;
-        try {
-            amount = Long.parseLong(selectedStamp.amount());
-        } catch (NumberFormatException ignored) {
-        }
         int depth = selectedStamp.depth() & 0xFF; // byte → unsigned int
 
         String capacitySummary = SwarmPostageStampUtils.formatCapacitySummary(depth);
-        String ttlSummary = SwarmPostageStampUtils.formatTTLSummary(amount, SwarmPostageStampUtils.DEFAULT_PRICE_PER_BLOCK);
 
         String details = String.format(Locale.US,
-                "Capacity (%s): %s\nTTL: %s\nDepth: %d",
+                "Capacity (%s): %s\nDepth: %d",
                 selectedStamp.immutable() ? "immutable" : "mutable",
                 capacitySummary,
-                ttlSummary,
                 depth);
 
         selectedStampDetails.setText(details);

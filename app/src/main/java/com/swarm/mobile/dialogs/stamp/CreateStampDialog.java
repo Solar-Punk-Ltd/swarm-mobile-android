@@ -16,8 +16,6 @@ import com.swarm.mobile.R;
 import com.swarm.mobile.interfaces.OnStampCreateListener;
 import com.swarm.mobile.utils.SwarmPostageStampUtils;
 
-import java.util.Locale;
-
 public class CreateStampDialog {
 
     public static final int MIN_DEPTH = 17;
@@ -43,7 +41,6 @@ public class CreateStampDialog {
 
         View capacityPreviewCard = dialogView.findViewById(R.id.capacityPreviewCard);
         TextView capacityPreviewText = dialogView.findViewById(R.id.capacityPreviewText);
-        TextView ttlPreviewText = dialogView.findViewById(R.id.ttlPreviewText);
         View indicativePriceRow = dialogView.findViewById(R.id.indicativePriceRow);
         TextView indicativePriceText = dialogView.findViewById(R.id.indicativePriceText);
 
@@ -60,10 +57,6 @@ public class CreateStampDialog {
             ttlDecrease.setEnabled(state.getTtlValue() > state.getTtlMin());
 
             long amount = state.computeAmount();
-            ttlPreviewText.setText(String.format(
-                    Locale.US, "%,d PLUR  ·  TTL: %s",
-                    amount,
-                    SwarmPostageStampUtils.formatTTL(state.ttlSeconds())));
 
             if (amount > 0) {
                 indicativePriceText.setText(

@@ -54,7 +54,6 @@
     <string name="stamp_ttl_unit_days">Days</string>
     <string name="stamp_ttl_unit_weeks">Weeks</string>
     <string name="stamp_ttl_unit_months">Months</string>
-    <string name="stamp_calculated_amount_label">Calculated amount (PLUR)</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="select">Select</string>

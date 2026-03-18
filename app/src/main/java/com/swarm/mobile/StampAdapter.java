@@ -69,15 +69,12 @@ public class StampAdapter extends RecyclerView.Adapter<StampAdapter.StampViewHol
             stampBatchIdView.setText(batchIdHex);
             stampBatchIdView.setMaxLength(20);
 
-            long amount = 0;
-            try { amount = Long.parseLong(stamp.amount()); } catch (NumberFormatException ignored) {}
             int depth = stamp.depth() & 0xFF;
 
             String details = String.format(Locale.US,
-                    "Capacity (%s): %s\nTTL: %s\nDepth: %d",
+                    "Capacity (%s): %s\nDepth: %d",
                     stamp.immutable() ? "immutable" : "mutable",
                     SwarmPostageStampUtils.formatCapacitySummary(depth),
-                    SwarmPostageStampUtils.formatTTLSummary(amount, SwarmPostageStampUtils.DEFAULT_PRICE_PER_BLOCK),
                     depth);
 
             stampDetailsText.setText(details);

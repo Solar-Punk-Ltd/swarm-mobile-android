@@ -8,7 +8,7 @@ public class NumberUtils {
     /**
      * 1 xBZZ = 10^16 PLUR
      */
-    private static final BigDecimal PLUR_PER_XBZZ = new BigDecimal("10000000000000000");
+    public static final BigDecimal PLUR_PER_XBZZ = new BigDecimal("10000000000000000");
 
     public static String formatXBzz(String plurStr) {
         if (plurStr == null || plurStr.isBlank()) {
