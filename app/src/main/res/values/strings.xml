@@ -47,6 +47,13 @@
     <string name="stamp_label">Label</string>
     <string name="stamp_immutable">Immutable</string>
     <string name="stamp_details">Stamp details</string>
+    <string name="stamp_capacity_label">Corresponding file size</string>
+    <string name="stamp_ttl_label">Corresponding TTL (Time to live)</string>
+    <string name="stamp_indicative_price">Indicative Price</string>
+    <string name="stamp_ttl_input_label">Duration</string>
+    <string name="stamp_ttl_unit_days">Days</string>
+    <string name="stamp_ttl_unit_weeks">Weeks</string>
+    <string name="stamp_ttl_unit_months">Months</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="select">Select</string>
@@ -70,6 +77,8 @@
     <string name="stampId">ID:</string>
     <string name="hash">Hash:</string>
     <string name="stamp_id">Stamp ID:</string>
+    <string name="plus">+</string>
+    <string name="minus">−</string>
 
     <string-array name="node_modes">
         <item>ultra light</item>
