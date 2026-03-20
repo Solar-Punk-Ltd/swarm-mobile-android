@@ -5,6 +5,8 @@ import static com.swarm.mobile.dialogs.stamp.CreateStampDialog.SECONDS_PER_DAY;
 
 import com.swarm.mobile.utils.SwarmPostageStampUtils;
 
+import java.math.BigInteger;
+
 public class StampDialogState {
 
     private int depth = MIN_DEPTH;
@@ -29,8 +31,8 @@ public class StampDialogState {
         return (long) ttlValue * ttlUnit;
     }
 
-    public long computeAmount() {
+    public long computeAmount(BigInteger currentPricePerBlock) {
         return SwarmPostageStampUtils.calculateAmountFromTTL(
-                ttlSeconds(), SwarmPostageStampUtils.DEFAULT_PRICE_PER_BLOCK);
+                ttlSeconds(), currentPricePerBlock.longValue());
     }
 }

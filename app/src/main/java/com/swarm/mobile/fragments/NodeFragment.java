@@ -12,8 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.swarm.lib.NodeInfo;
-import com.swarm.lib.NodeStatus;
+import com.swarm.mobile.NodeInfo;
+import com.swarm.mobile.NodeStatus;
 import com.swarm.mobile.NodeMode;
 import com.swarm.mobile.R;
 import com.swarm.mobile.utils.NumberUtils;

@@ -16,6 +16,8 @@ import com.swarm.mobile.R;
 import com.swarm.mobile.interfaces.OnStampCreateListener;
 import com.swarm.mobile.utils.SwarmPostageStampUtils;
 
+import java.math.BigInteger;
+
 public class CreateStampDialog {
 
     public static final int MIN_DEPTH = 17;
@@ -24,7 +26,7 @@ public class CreateStampDialog {
     public static final long SECONDS_PER_WEEK = 7 * SECONDS_PER_DAY;
     public static final long SECONDS_PER_MONTH = 30 * SECONDS_PER_DAY;
 
-    public static void show(Context context, OnStampCreateListener listener) {
+    public static void show(Context context, BigInteger currentNetworkPrice, OnStampCreateListener listener) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_stamp, null);
 
         TextView depthDisplay = dialogView.findViewById(R.id.depthInput);
@@ -56,7 +58,7 @@ public class CreateStampDialog {
             ttlValueDisplay.setText(String.valueOf(state.getTtlValue()));
             ttlDecrease.setEnabled(state.getTtlValue() > state.getTtlMin());
 
-            long amount = state.computeAmount();
+            long amount = state.computeAmount(currentNetworkPrice);
 
             if (amount > 0) {
                 indicativePriceText.setText(
@@ -120,7 +122,7 @@ public class CreateStampDialog {
         dialogView.findViewById(R.id.cancelButton).setOnClickListener(v -> dialog.dismiss());
 
         dialogView.findViewById(R.id.createButton).setOnClickListener(v -> {
-            long amount = state.computeAmount();
+            long amount = state.computeAmount(currentNetworkPrice);
             if (amount <= 0) {
                 Toast.makeText(context, "Invalid duration", Toast.LENGTH_SHORT).show();
                 return;

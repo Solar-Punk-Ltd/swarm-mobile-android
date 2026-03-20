@@ -23,9 +23,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.swarm.interfaces.StampListener;
 import com.swarm.interfaces.UploadListener;
-import com.swarm.lib.NodeInfo;
-import com.swarm.lib.NodeStatus;
-import com.swarm.lib.Stamp;
+import com.swarm.mobile.NodeInfo;
+import com.swarm.mobile.NodeStatus;
+import com.swarm.mobile.Stamp;
 import com.swarm.mobile.R;
 import com.swarm.mobile.StampAdapter;
 import com.swarm.mobile.SwarmNodeService;
@@ -37,9 +37,12 @@ import com.swarm.mobile.storage.UploadHistoryStorage;
 import com.swarm.mobile.utils.SwarmPostageStampUtils;
 import com.swarm.mobile.views.TruncatedTextView;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class UploadFragment extends Fragment implements StampListener,
         OnStampClickListener,
@@ -226,12 +229,34 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void showCreateStampDialog() {
-        if (getContext() == null) return;
-        CreateStampDialog.show(getContext(), (amount, depth, label, immutable) -> {
-            if (swarmNodeService == null) return;
-//            swarmNodeService.buyStamp(amount, depth, label, immutable, this);
-            Toast.makeText(getContext(), "Creating stamp. Please wait...", Toast.LENGTH_LONG).show();
+        if (getContext() == null) {
+            return;
+        }
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            BigInteger currentNetworkPrice = this.swarmNodeService != null
+                    ? this.swarmNodeService.getCurrentNetworkPrice()
+                    : null;
+
+            if (getActivity() == null) {
+                return;
+            }
+            getActivity().runOnUiThread(() -> {
+                if (getContext() == null) {
+                    return;
+                }
+                CreateStampDialog.show(getContext(), currentNetworkPrice, (amount, depth, label, immutable) -> {
+                    if (swarmNodeService == null) {
+                        return;
+                    }
+
+                    swarmNodeService.buyStamp(amount, depth, label, immutable, this);
+                    Toast.makeText(getContext(), "Creating stamp. Please wait...", Toast.LENGTH_LONG).show();
+                });
+            });
         });
+        executor.shutdown();
     }
 
     public void updateNodeInfo(NodeInfo nodeInfo) {
@@ -270,7 +295,9 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void getAllStamps() {
-        if (swarmNodeService == null) return;
+        if (swarmNodeService == null) {
+            return;
+        }
         this.swarmNodeService.getAllStamps(this);
     }
 
@@ -290,7 +317,10 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void updateSelectedFileDisplay() {
-        if (selectedFileInfoView == null) return;
+        if (selectedFileInfoView == null) {
+            return;
+        }
+
         if (selectedFileUri != null && selectedFileName != null) {
             noFilePlaceholder.setVisibility(View.GONE);
             selectedFileIcon.setVisibility(View.VISIBLE);
@@ -306,7 +336,9 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void updateSelectedStampDisplay() {
-        if (selectedStampCard == null) return;
+        if (selectedStampCard == null) {
+            return;
+        }
 
         if (selectedStamp == null) {
             noStampPlaceholder.setVisibility(View.VISIBLE);
@@ -347,7 +379,9 @@ public class UploadFragment extends Fragment implements StampListener,
     @Override
     public void onUploadSuccessful(String hash, String uploadRateMBps) {
         Log.i("UploadFragment", "Upload successful with hash: " + hash);
-        if (swarmNodeService != null) swarmNodeService.onUploadFinished();
+        if (swarmNodeService != null) {
+            swarmNodeService.onUploadFinished();
+        }
         setUploading(false);
 
         if (selectedFileName != null && selectedStamp != null) {
@@ -384,7 +418,9 @@ public class UploadFragment extends Fragment implements StampListener,
 
     @Override
     public void onUploadFailed(String error) {
-        if (swarmNodeService != null) swarmNodeService.onUploadFinished();
+        if (swarmNodeService != null) {
+            swarmNodeService.onUploadFinished();
+        }
         setUploading(false);
         if (getActivity() != null) {
             getActivity().runOnUiThread(() ->
@@ -460,7 +496,9 @@ public class UploadFragment extends Fragment implements StampListener,
     }
 
     private void showUploadHistoryDialog() {
-        if (getContext() == null) return;
+        if (getContext() == null) {
+            return;
+        }
 
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_upload_history, null);
         RecyclerView recyclerView = dialogView.findViewById(R.id.uploadRecordsRecyclerView);
@@ -533,6 +571,5 @@ public class UploadFragment extends Fragment implements StampListener,
 
         return null;
     }
-
 
 }

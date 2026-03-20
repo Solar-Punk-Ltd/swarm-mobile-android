@@ -13,13 +13,6 @@ public class SwarmPostageStampUtils {
     public static final int BUCKET_DEPTH = 16;
     /** Gnosis Chain average block time in seconds */
     public static final int BLOCK_TIME_SECONDS = 5;
-    /**
-     * Default network price per block in PLUR.
-     * Used as a fallback when the live price is unavailable.
-     * ~62681 PLUR as observed on mainnet (March 2026).
-     */
-    // TODO query this price from the given RPC
-    public static final long DEFAULT_PRICE_PER_BLOCK = 62681L;
 
     /**
      * Empirical utilization rates for different batch depths.
@@ -69,7 +62,9 @@ public class SwarmPostageStampUtils {
      * @param pricePerBlock Current network storage price per block in PLUR (e.g. 62 681)
      */
     public static long calculateTTLSeconds(long amount, long pricePerBlock) {
-        if (pricePerBlock <= 0) return 0;
+        if (pricePerBlock <= 0) {
+            return 0;
+        }
         return (amount / pricePerBlock) * BLOCK_TIME_SECONDS;
     }
 
@@ -103,7 +98,9 @@ public class SwarmPostageStampUtils {
      * @param pricePerBlock Current network price per block in PLUR
      */
     public static long calculateAmountFromTTL(long ttlSeconds, long pricePerBlock) {
-        if (ttlSeconds <= 0 || pricePerBlock <= 0) return 0;
+        if (ttlSeconds <= 0 || pricePerBlock <= 0) {
+            return 0;
+        }
         long blocks = ttlSeconds / BLOCK_TIME_SECONDS;
         return blocks * pricePerBlock;
     }
@@ -126,7 +123,9 @@ public class SwarmPostageStampUtils {
      * Returns a formatted indicative price string, e.g. "0.5941 xBZZ"
      */
     public static String formatIndicativePrice(long amount, int depth) {
-        if (amount <= 0 || depth <= 0) return "— xBZZ";
+        if (amount <= 0 || depth <= 0) {
+            return "— xBZZ";
+        }
         BigDecimal price = calculateIndicativePriceXBZZ(amount, depth);
         return String.format(Locale.US, "%s xBZZ", price.toPlainString());
     }

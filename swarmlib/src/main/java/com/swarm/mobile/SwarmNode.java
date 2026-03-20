@@ -1,4 +1,4 @@
-package com.swarm.lib;
+package com.swarm.mobile;
 
 import android.content.ContentResolver;
 import android.net.Uri;
@@ -13,6 +13,7 @@ import com.swarm.interfaces.UploadListener;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -34,6 +35,8 @@ public class SwarmNode {
     private final String rpcEndpoint;
     private final boolean lightModeEnabled;
     private final boolean cacheEnabled;
+
+    private NetworkPriceProvider networkPriceProvider;
 
 
     public SwarmNode(String dataDir, String password, String rpcEndpoint, boolean lightModeEnabled, boolean cacheEnabled) {
@@ -338,5 +341,13 @@ public class SwarmNode {
         }
 
         return node;
+    }
+
+    public BigInteger getCurrentNetworkPrice() {
+        if (networkPriceProvider == null) {
+            networkPriceProvider = new NetworkPriceProvider(rpcEndpoint);
+        }
+
+        return networkPriceProvider.getNetworkPrice();
     }
 }
