@@ -33,51 +33,86 @@ public class NetworkPriceProvider {
     }
 
     public BigInteger getNetworkPrice() {
+        ensureWeb3Connected();
 
-        try {
-            web3j.ethBlockNumber().send();
-        } catch (IOException e) {
-            Log.w("NetworkPriceProvider", "Web3j connection lost, reconnecting...", e);
-            web3j.shutdown();
-            web3j = Web3j.build(new HttpService(rpcUrl));
-            try {
-                web3j.ethBlockNumber().send();
-            } catch (IOException ex) {
-                Log.e("NetworkPriceProvider", "Web3j still not connected after reconnect, returning fallback price", ex);
-                return FALLBACK_PRICE;
-            }
-        }
-
-        Function function = new Function(
+        Function web3QueryFunction = new Function(
                 PRICE_OPERATION_NAME,
                 Collections.emptyList(),
                 Collections.singletonList(new TypeReference<Uint256>() {
                 })
         );
 
-        EthCall currentPriceResponse = queryCurrentPrice(function);
+        try {
+            EthCall currentNetworkPriceResponse = queryNetworkPrice(web3QueryFunction);
 
-        var results = FunctionReturnDecoder.decode(currentPriceResponse.getValue(), function.getOutputParameters());
+            var results = FunctionReturnDecoder.decode(currentNetworkPriceResponse.getValue(), web3QueryFunction.getOutputParameters());
 
-        if (!results.isEmpty()) {
-            var pricePerBlock = (BigInteger) results.get(0).getValue();
-            Log.d("NetworkPriceProvider", "Fetched current price from network: " + pricePerBlock);
-            return pricePerBlock;
+            if (!results.isEmpty()) {
+                var pricePerBlock = (BigInteger) results.get(0).getValue();
+                Log.d("NetworkPriceProvider", "Fetched current price from network: " + pricePerBlock);
+                return pricePerBlock;
+            }
+        } catch (Exception e){
+            Log.e("NetworkPriceProvider", "Failed to query current price from Web3: " + e.getMessage(), e);
         }
 
         return FALLBACK_PRICE;
     }
 
-    private EthCall queryCurrentPrice(Function function) {
+    private void ensureWeb3Connected() {
+        if (!web3jIsConnected()) {
+            Log.w("NetworkPriceProvider", "Web3j connection lost, attempting to reconnect...");
+            reconnectWithRetry();
+            Log.w("NetworkPriceProvider", "Web3j connected.");
+        }
+    }
 
-        String encodedFunction = FunctionEncoder.encode(function);
+
+    private void reconnectWithRetry() {
+        var maxAttempts = 5;
+        for(int attempt = 0; attempt <= maxAttempts; attempt++) {
+            try {
+                reconnect();
+                if (web3jIsConnected()) {
+                    Log.d("NetworkPriceProvider", "Successfully reconnected to Web3j on attempt " + attempt);
+                    return;
+                }
+
+                Thread.sleep(2000L * attempt);
+            } catch (InterruptedException e) {
+                Log.e("NetworkPriceProvider", "Reconnect interrupted on " + attempt + ": " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+            catch (Exception e) {
+                Log.e("NetworkPriceProvider", "Reconnection attempt " + attempt + " failed: " + e.getMessage());
+            }
+        }
+
+        String message = "Failed to reconnect to Web3 after " + maxAttempts + " attempts";
+        Log.e("NetworkPriceProvider", message);
+
+        throw new RuntimeException(message);
+    }
+
+    private boolean web3jIsConnected() {
         try {
+            web3j.ethBlockNumber().send();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void reconnect() {
+        web3j.shutdown();
+        web3j = Web3j.build(new HttpService(rpcUrl));
+    }
+
+    private EthCall queryNetworkPrice(Function function) throws IOException {
+        String encodedFunction = FunctionEncoder.encode(function);
             return web3j.ethCall(
                             Transaction.createEthCallTransaction(null, SWARM_CONTRACT_ADDRESS, encodedFunction),
                             DefaultBlockParameterName.LATEST)
                     .send();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
