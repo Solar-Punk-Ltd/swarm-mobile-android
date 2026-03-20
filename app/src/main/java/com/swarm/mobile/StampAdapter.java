@@ -8,7 +8,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.swarm.lib.Stamp;
 import com.swarm.mobile.utils.SwarmPostageStampUtils;
 
 import com.swarm.mobile.interfaces.OnStampClickListener;

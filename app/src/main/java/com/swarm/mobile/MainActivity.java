@@ -19,8 +19,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.swarm.interfaces.SwarmNodeListener;
-import com.swarm.lib.NodeInfo;
-import com.swarm.lib.NodeStatus;
 import com.swarm.mobile.fragments.DownloadFragment;
 import com.swarm.mobile.fragments.NodeFragment;
 import com.swarm.mobile.fragments.UploadFragment;

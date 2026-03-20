@@ -1,4 +1,4 @@
-package com.swarm.lib;
+package com.swarm.mobile;
 
 public record NodeInfo(String walletAddress,
                        String chequebookAddress,

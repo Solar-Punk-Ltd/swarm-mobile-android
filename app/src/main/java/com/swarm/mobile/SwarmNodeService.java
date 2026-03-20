@@ -18,8 +18,8 @@ import androidx.core.app.NotificationCompat;
 import com.swarm.interfaces.StampListener;
 import com.swarm.interfaces.SwarmNodeListener;
 import com.swarm.interfaces.UploadListener;
-import com.swarm.lib.Stamp;
-import com.swarm.lib.SwarmNode;
+
+import java.math.BigInteger;
 
 public class SwarmNodeService extends Service {
     private static final String TAG = "SwarmNodeService";
@@ -214,6 +214,10 @@ public class SwarmNodeService extends Service {
 
     public void onDownloadFinished() {
         downloading = false;
+    }
+
+    public BigInteger getCurrentNetworkPrice() {
+        return this.swarmNode.getCurrentNetworkPrice();
     }
 
 

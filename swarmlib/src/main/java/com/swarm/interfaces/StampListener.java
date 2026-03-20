@@ -1,6 +1,6 @@
 package com.swarm.interfaces;
 
-import com.swarm.lib.Stamp;
+import com.swarm.mobile.Stamp;
 
 import java.util.List;
 
