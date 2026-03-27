@@ -181,8 +181,9 @@ public class SwarmNode {
                     }
 
                     var file = result.getFile();
+                    var rateInMBps = result.getStats() != null ? result.getStats().getRateInMBps() : null;
 
-                    notifyDownloadSuccess(file.getName(), file.getData(), result.getStats().getRateInMBps());
+                    notifyDownloadSuccess(file.getName(), file.getData(), rateInMBps);
                 } catch (Exception e) {
                     var message = e.getMessage();
                     notifyDownloadFailed(hash, message);
@@ -194,19 +195,19 @@ public class SwarmNode {
     }
 
     private void notifyHashNotFound() {
-        for (SwarmNodeListener listener: listeners) {
+        for (SwarmNodeListener listener : listeners) {
             listener.onHashNotFound();
         }
     }
 
     private void notifyDownloadSuccess(String fileName, byte[] data, String downloadRateMBps) {
-        for (SwarmNodeListener listener: listeners) {
+        for (SwarmNodeListener listener : listeners) {
             listener.onDownloadSuccess(fileName, data, downloadRateMBps);
         }
     }
 
     private void notifyDownloadFailed(String hash, String errorMessage) {
-        for (SwarmNodeListener listener: listeners) {
+        for (SwarmNodeListener listener : listeners) {
             listener.onDownloadFailed(hash, errorMessage);
         }
     }
@@ -287,7 +288,9 @@ public class SwarmNode {
                         return;
                     }
 
-                    uploadListener.onUploadSuccessful(hash.getReferenceHex(), hash.getStats().getRateOutMBps());
+                    var rateInMBps = hash.getStats() != null ? hash.getStats().getRateOutMBps() : null;
+
+                    uploadListener.onUploadSuccessful(hash.getReferenceHex(), rateInMBps);
                 } catch (Exception e) {
                     Logger.getLogger(this.getClass().getName()).info("Unexpected error during upload: " + e.getMessage());
                     uploadListener.onUploadFailed("Unexpected error during upload: " + e.getMessage());
